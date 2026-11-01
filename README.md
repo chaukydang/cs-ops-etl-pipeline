@@ -66,8 +66,11 @@ python check_db_connection.py
 
 ```bash
 docker compose up -d postgres                     # or any PostgreSQL 14+
+printf 'DB_HOST=localhost\nDB_NAME=warehouse\nDB_USER=etl\nDB_PASSWORD=etl_local\nDB_SSLMODE=disable\nDB_SCHEMA=Service\n' > .env
+export DB_HOST=localhost DB_NAME=warehouse DB_USER=etl DB_PASSWORD=etl_local DB_SSLMODE=disable DB_SCHEMA=Service
+
 python scripts/make_demo_data.py --days 14 --agents 30
-psql -h localhost -U etl -d warehouse -c 'create schema "Service"'
+PGPASSWORD=etl_local psql -h localhost -U etl -d warehouse -c 'create schema "Service"'
 
 for s in cph_details ticket_details csat_details ontime_attendance backlog_details fc_actual_details; do
   python main.py --module archive  --source $s
