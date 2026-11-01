@@ -21,11 +21,12 @@ def parse_arguments() -> argparse.Namespace:
             "lark",
             "archive",
             "database",
+            "backfill",
             "all",
         ),
         default="all",
         help=(
-            "Module to run: dashboard, lark, archive, database, or all. "
+            "Module to run: dashboard, lark, archive, database, backfill, or all. "
             "The all option runs dashboard, lark, archive (quality check + "
             "Parquet), then database load."
         ),
@@ -63,6 +64,35 @@ def parse_arguments() -> argparse.Namespace:
         ),
     )
 
+    parser.add_argument(
+        "--from",
+        dest="date_from",
+        default=None,
+        help="Backfill start date, YYYY-MM-DD (inclusive).",
+    )
+    parser.add_argument(
+        "--to",
+        dest="date_to",
+        default=None,
+        help="Backfill end date, YYYY-MM-DD (inclusive).",
+    )
+    parser.add_argument(
+        "--chunk",
+        choices=("day", "week", "month"),
+        default="month",
+        help="Backfill chunk size. Chunks that hit the export row limit are split.",
+    )
+    parser.add_argument(
+        "--no-archive",
+        action="store_true",
+        help="Backfill: skip writing Parquet.",
+    )
+    parser.add_argument(
+        "--keep-files",
+        action="store_true",
+        help="Backfill: keep downloaded chunk CSVs under downloads/backfill.",
+    )
+
     return parser.parse_args()
 
 
@@ -73,7 +103,19 @@ def run_dashboard_module() -> bool:
         print()
         print("[PIPELINE] Starting dashboard module...")
 
-        run_dashboard()
+        result = run_dashboard()
+
+        # runner.main() reports problems in its return value instead of raising
+        if result.get("fatal") or result.get("failed"):
+            print(
+                "[PIPELINE FAILED] Dashboard | "
+                "failed sources={} | fatal={}".format(
+                    len(result.get("failed", [])),
+                    result.get("fatal"),
+                )
+            )
+
+            return False
 
         print("[PIPELINE] Dashboard module completed.")
         return True
@@ -168,6 +210,51 @@ def run_archive_module(
     except Exception as error:
         print(
             "[PIPELINE FAILED] Archive | "
+            "{}: {}".format(
+                type(error).__name__,
+                error,
+            )
+        )
+
+        return False
+
+
+def run_backfill_module(
+    arguments: argparse.Namespace,
+) -> bool:
+    try:
+        from datetime import date
+
+        from modules.dashboard.backfill_runner import run as run_backfill
+
+        if not arguments.date_from or not arguments.date_to:
+            raise ValueError("backfill needs --from and --to (YYYY-MM-DD)")
+
+        print()
+        print("[PIPELINE] Starting backfill...")
+
+        result = run_backfill(
+            BASE_DIR,
+            date.fromisoformat(arguments.date_from),
+            date.fromisoformat(arguments.date_to),
+            chunk=arguments.chunk,
+            source=arguments.source,
+            archive=not arguments.no_archive,
+            keep_files=arguments.keep_files,
+        )
+
+        print(
+            "[BACKFILL] completed windows={} failed={}".format(
+                len(result["completed"]),
+                len(result["failed"]),
+            )
+        )
+
+        return not result["failed"]
+
+    except Exception as error:
+        print(
+            "[PIPELINE FAILED] Backfill | "
             "{}: {}".format(
                 type(error).__name__,
                 error,
@@ -277,6 +364,8 @@ def print_pipeline_result(
 
 
 def main() -> None:
+    arguments = parse_arguments()
+
     if not ENV_FILE.exists():
         raise FileNotFoundError(
             "Environment file not found: {}".format(
@@ -288,7 +377,6 @@ def main() -> None:
         ENV_FILE
     )
 
-    arguments = parse_arguments()
     has_failure = False
 
     print_pipeline_header(
@@ -313,6 +401,9 @@ def main() -> None:
         )
 
         has_failure = not archive_ok
+
+    elif arguments.module == "backfill":
+        has_failure = not run_backfill_module(arguments)
 
     elif arguments.module == "database":
         database_ok = run_database_module(

@@ -459,7 +459,8 @@ def send_summary_notification(
 # ============================================================
 
 
-def main() -> None:
+def main() -> dict[str, Any]:
+    """Run all enabled sources. Returns completed / failed lists and any fatal error."""
     setup_logging()
 
     pipeline_started_at = time.monotonic()
@@ -468,6 +469,7 @@ def main() -> None:
 
     completed_sources: list[dict[str, Any]] = []
     failed_sources: list[dict[str, Any]] = []
+    fatal_error: str | None = None
 
     try:
         # Phải load .env trước mọi lệnh get_required_env().
@@ -589,10 +591,12 @@ def main() -> None:
             )
 
     except KeyboardInterrupt:
+        fatal_error = "Stopped manually"
         LOGGER.warning("Pipeline stopped manually")
         print("\n[PIPELINE STOPPED] Stopped manually by user.")
 
     except FileNotFoundError as error:
+        fatal_error = f"{type(error).__name__}: {error}"
         LOGGER.exception("Required file was not found")
 
         if notifier is not None:
@@ -605,6 +609,7 @@ def main() -> None:
         print(f"\n[PIPELINE FAILED] {error}")
 
     except AeolusAuthError as error:
+        fatal_error = f"{type(error).__name__}: {error}"
         LOGGER.exception("Dashboard authentication failed")
 
         if notifier is not None:
@@ -617,6 +622,7 @@ def main() -> None:
         print(f"\n[PIPELINE FAILED] Authentication error: {error}")
 
     except Exception as error:
+        fatal_error = f"{type(error).__name__}: {error}"
         LOGGER.exception("Unhandled pipeline error")
         traceback_text = traceback.format_exc()
 
@@ -648,6 +654,12 @@ def main() -> None:
                 )
 
         print("[PIPELINE] Finished")
+
+    return {
+        "completed": completed_sources,
+        "failed": failed_sources,
+        "fatal": fatal_error,
+    }
 
 
 if __name__ == "__main__":

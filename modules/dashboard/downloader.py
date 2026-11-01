@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import json
 import logging
 import time
 import uuid
@@ -21,6 +22,10 @@ from requests.exceptions import (
 
 class AeolusDownloadError(Exception):
     """Lỗi chung khi download dữ liệu từ Aeolus."""
+
+
+class AeolusRowLimitError(AeolusDownloadError):
+    """The export reached its row limit, so the file is incomplete."""
 
 
 class AeolusUnauthorizedError(AeolusDownloadError):
@@ -75,18 +80,35 @@ class AeolusDownloader:
 
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def download_metric(self, config: dict[str, Any]) -> Path:
+    def download_metric(
+        self,
+        config: dict[str, Any],
+        window: tuple[datetime, datetime] | None = None,
+        output_file: Path | None = None,
+    ) -> Path:
+        """Download one report.
+
+        window:      explicit (start, end) instead of the rolling window from
+                     the config; used for backfills.
+        output_file: write here instead of the configured download directory.
+        """
         self.validate_config(config)
 
         metric_name = str(config["metric_name"]).strip()
         endpoint = str(config["endpoint"]).strip()
         payload = deepcopy(config["payload"])
-        output_directory = self.get_output_directory(config)
-        filename = self.build_filename(config, metric_name)
-        output_file = output_directory / filename
+
+        if output_file is None:
+            output_directory = self.get_output_directory(config)
+            filename = self.build_filename(config, metric_name)
+            output_file = output_directory / filename
+        else:
+            output_file = Path(output_file)
+            output_file.parent.mkdir(parents=True, exist_ok=True)
+            filename = output_file.name
 
         self.update_report_name(payload, filename)
-        self.apply_dynamic_date(payload, config)
+        applied_window = self.apply_dynamic_date(payload, config, window)
 
         self.logger.info(
             "Starting Dashboard download | metric=%s | endpoint=%s",
@@ -100,6 +122,18 @@ class AeolusDownloader:
 
         row_count = self.count_csv_rows(output_file)
         file_size = output_file.stat().st_size
+
+        # The export silently stops at its row limit; a truncated file must
+        # never reach the database.
+        limit = payload.get("downloadConfig", {}).get("limit")
+        if limit and row_count >= int(limit):
+            output_file.unlink(missing_ok=True)
+            raise AeolusRowLimitError(
+                f"{metric_name}: export hit the {limit} row limit; use a smaller date window"
+            )
+
+        if applied_window is not None:
+            self.write_window_sidecar(output_file, metric_name, applied_window, row_count)
 
         self.logger.info(
             "Dashboard download completed | metric=%s | file=%s | rows=%s | bytes=%s",
@@ -150,11 +184,31 @@ class AeolusDownloader:
         download_config["reportName"] = filename
         download_config.setdefault("dataType", "csv")
 
+    @staticmethod
+    def write_window_sidecar(
+        output_file: Path,
+        metric_name: str,
+        window: tuple[datetime, datetime],
+        row_count: int,
+    ) -> None:
+        """Record which dates the file covers, so the loader replaces exactly that range."""
+        meta = {
+            "metric": metric_name,
+            "date_from": window[0].date().isoformat(),
+            "date_to": window[1].date().isoformat(),
+            "rows": row_count,
+            "downloaded_at": datetime.now().isoformat(timespec="seconds"),
+        }
+        Path(str(output_file) + ".meta.json").write_text(
+            json.dumps(meta, indent=2), encoding="utf-8"
+        )
+
     def apply_dynamic_date(
         self,
         payload: dict[str, Any],
         config: dict[str, Any],
-    ) -> None:
+        window: tuple[datetime, datetime] | None = None,
+    ) -> tuple[datetime, datetime] | None:
         """
         Với weeks_back=5 và include_current_week=true:
         - Tìm Chủ nhật của tuần hiện tại.
@@ -167,7 +221,7 @@ class AeolusDownloader:
         """
         dynamic_date = config.get("dynamic_date", {})
         if not dynamic_date.get("enabled", False):
-            return
+            return None
 
         field_id = str(dynamic_date.get("field_id", "")).strip()
         if not field_id:
@@ -183,11 +237,14 @@ class AeolusDownloader:
             dynamic_date.get("week_start", "sunday")
         ).strip().lower()
 
-        start_datetime, end_datetime = self.calculate_date_range(
-            weeks_back=weeks_back,
-            include_current_week=include_current_week,
-            week_start=week_start,
-        )
+        if window is not None:
+            start_datetime, end_datetime = window
+        else:
+            start_datetime, end_datetime = self.calculate_date_range(
+                weeks_back=weeks_back,
+                include_current_week=include_current_week,
+                week_start=week_start,
+            )
         date_values = [
             start_datetime.strftime(self.DEFAULT_DATE_FORMAT),
             end_datetime.strftime(self.DEFAULT_DATE_FORMAT),
@@ -231,6 +288,8 @@ class AeolusDownloader:
                 date_values[1],
                 updated_count,
             )
+
+        return (start_datetime, end_datetime) if updated_count else None
 
     @staticmethod
     def calculate_date_range(
