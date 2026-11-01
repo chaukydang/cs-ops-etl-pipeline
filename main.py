@@ -22,11 +22,12 @@ def parse_arguments() -> argparse.Namespace:
             "archive",
             "database",
             "backfill",
+            "monitor",
             "all",
         ),
         default="all",
         help=(
-            "Module to run: dashboard, lark, archive, database, backfill, or all. "
+            "Module to run: dashboard, lark, archive, database, backfill, monitor, or all. "
             "The all option runs dashboard, lark, archive (quality check + "
             "Parquet), then database load."
         ),
@@ -264,6 +265,29 @@ def run_backfill_module(
         return False
 
 
+def run_monitor_module() -> bool:
+    try:
+        from modules.monitoring.runner import run as run_monitor
+
+        print()
+        print("[PIPELINE] Starting monitor...")
+
+        issues = run_monitor(BASE_DIR)
+
+        return not issues
+
+    except Exception as error:
+        print(
+            "[PIPELINE FAILED] Monitor | "
+            "{}: {}".format(
+                type(error).__name__,
+                error,
+            )
+        )
+
+        return False
+
+
 def run_database_module(
     action: str,
     source_name: str | None,
@@ -401,6 +425,9 @@ def main() -> None:
         )
 
         has_failure = not archive_ok
+
+    elif arguments.module == "monitor":
+        has_failure = not run_monitor_module()
 
     elif arguments.module == "backfill":
         has_failure = not run_backfill_module(arguments)

@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import json
 import logging
+from datetime import datetime, timezone
 from pathlib import Path
 
 from modules.database.connection import DatabaseConnectionFactory
 from modules.database.csv_loader import CsvDatabaseLoader, CsvDefinition
+from modules.monitoring.run_log import RunLog
 
 
 class DatabaseRunner:
@@ -30,6 +32,10 @@ class DatabaseRunner:
 
         completed = []
         failed = []
+        run_log = RunLog(
+            DatabaseConnectionFactory.connect,
+            self.settings.get("schema", "Service"),
+        )
 
         with DatabaseConnectionFactory.connect() as connection:
             loader = CsvDatabaseLoader(
@@ -50,6 +56,7 @@ class DatabaseRunner:
                     )
                 )
 
+                started_at = datetime.now(timezone.utc)
                 try:
                     result = (
                         loader.initialize_table(source)
@@ -57,6 +64,14 @@ class DatabaseRunner:
                         else loader.load_table(source)
                     )
                     completed.append(result)
+                    run_log.record(
+                        "database",
+                        source.name,
+                        "success",
+                        started_at,
+                        rows=result.get("inserted", result.get("rows")),
+                        details={"action": action, **result},
+                    )
                     print(
                         "[DATABASE COMPLETED] {} | {} | {}".format(
                             source.name,
@@ -66,6 +81,14 @@ class DatabaseRunner:
                     )
                 except Exception as error:
                     connection.rollback()
+                    run_log.record(
+                        "database",
+                        source.name,
+                        "failed",
+                        started_at,
+                        error="{}: {}".format(type(error).__name__, error),
+                        details={"action": action},
+                    )
                     failed.append(
                         {
                             "source": source.name,
@@ -122,6 +145,7 @@ class DatabaseRunner:
                 recursive=bool(data.get("recursive", True)),
                 load_mode=str(data.get("load_mode", "replace")).strip().lower(),
                 date_column=(str(data["date_column"]).strip() if data.get("date_column") else None),
+                max_lag_days=int(data.get("max_lag_days", 3)),
             )
             if definition.enabled:
                 definitions.append(definition)

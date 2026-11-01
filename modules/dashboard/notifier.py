@@ -88,7 +88,7 @@ class LarkNotifier:
         )
 
         lines = [
-            f"DashboardPIPELINE | {level}",
+            f"ETL PIPELINE | {level}",
             "",
             f"Event: {title}",
             f"Time: {event_time}",

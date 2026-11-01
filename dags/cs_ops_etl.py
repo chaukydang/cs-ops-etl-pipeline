@@ -15,7 +15,26 @@ from airflow.operators.bash import BashOperator
 
 PROJECT_DIR = os.getenv("PIPELINE_HOME", "/opt/airflow/pipeline")
 
+
+def notify_failure(context) -> None:
+    """Post failed tasks to the Lark webhook (LARK_WEBHOOK_URL)."""
+    import sys
+
+    if PROJECT_DIR not in sys.path:
+        sys.path.insert(0, PROJECT_DIR)
+    from modules.core.env_loader import get_optional_env
+    from modules.dashboard.notifier import LarkNotifier
+
+    task = context["task_instance"]
+    LarkNotifier(get_optional_env("LARK_WEBHOOK_URL")).send_error(
+        title=f"Airflow task failed: {task.task_id}",
+        message=f"DAG {task.dag_id}, try {task.try_number}",
+        details={"run_id": context.get("run_id"), "log_url": task.log_url},
+    )
+
+
 default_args = {
+    "on_failure_callback": notify_failure,
     "owner": "data",
     "retries": 2,
     "retry_delay": timedelta(minutes=10),
@@ -35,7 +54,11 @@ with DAG(
     def stage(task_id: str, module: str, extra: str = "") -> BashOperator:
         return BashOperator(
             task_id=task_id,
-            bash_command=f"cd {PROJECT_DIR} && python main.py --module {module} {extra}",
+            bash_command=(
+                f"cd {PROJECT_DIR} && "
+                "PIPELINE_RUN_ID='{{ run_id }}' "
+                f"python main.py --module {module} {extra}"
+            ),
             # downloads are a few minutes at most; anything longer is stuck
             execution_timeout=timedelta(minutes=45),
         )
@@ -66,5 +89,7 @@ with DAG(
         execution_timeout=timedelta(minutes=60),
     )
 
-    [dashboard, lark] >> archive >> load >> dbt_build
+    monitor = stage("monitor", "monitor")
+
+    [dashboard, lark] >> archive >> load >> dbt_build >> monitor
     archive >> spark_history

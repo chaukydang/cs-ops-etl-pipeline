@@ -25,6 +25,8 @@ class CsvDefinition:
     #                keep everything older (rolling dashboard exports)
     load_mode: str = "replace"
     date_column: str | None = None
+    # monitoring: newest date may be at most this many days old
+    max_lag_days: int = 3
 
 
 @dataclass(frozen=True)

@@ -1,6 +1,8 @@
 import csv
+import os
 from datetime import date, timedelta
 
+import psycopg
 import pytest
 
 from modules.database.csv_loader import CsvDatabaseLoader, CsvDefinition
@@ -144,3 +146,38 @@ def test_backfill_end_to_end_keeps_adjacent_months(connection, schema, tmp_path)
     week = write_csv(tmp_path / "week.csv", days(date(2026, 3, 25), 7), 4)
     loader.load_table(source, file_path=week, window=(date(2026, 3, 25), date(2026, 3, 31)))
     assert count(connection, schema) == 83 * 3 + 7 * 4
+
+
+def test_run_log_and_monitor(connection, schema, tmp_path):
+    from datetime import datetime, timezone
+
+    from modules.monitoring.run_log import RunLog
+
+    def factory():
+        return psycopg.connect(
+            host=os.environ["DB_HOST"],
+            port=int(os.environ.get("DB_PORT", "5432")),
+            dbname=os.environ["DB_NAME"],
+            user=os.environ["DB_USER"],
+            password=os.environ["DB_PASSWORD"],
+            sslmode=os.environ.get("DB_SSLMODE", "prefer"),
+        )
+
+    log = RunLog(factory, schema, run_id="r1")
+    started = datetime.now(timezone.utc)
+
+    with log.track("database", "tickets") as run:
+        run["rows"] = 42
+    try:
+        with log.track("database", "csat"):
+            raise RuntimeError("boom")
+    except RuntimeError:
+        pass
+
+    with connection.cursor() as cur:
+        cur.execute(f'SELECT source, status, rows, error FROM "{schema}".pipeline_runs ORDER BY id')
+        rows = cur.fetchall()
+    assert rows[0] == ("tickets", "success", 42, None)
+    assert rows[1][0:2] == ("csat", "failed") and "boom" in rows[1][3]
+    assert log.last_success("database", "tickets") >= started
+    assert log.last_success("database", "csat") is None
