@@ -2,11 +2,39 @@
 
 Daily ETL for the customer service operations reports. It pulls data from three places, cleans it up, and loads it into PostgreSQL so the dashboards read from one database instead of a pile of exports.
 
+```mermaid
+flowchart LR
+    subgraph Sources
+        A[Aeolus BI dashboard<br/>8 report exports]
+        L[Lark Sheets and Base<br/>productivity, backlog, roster]
+    end
+
+    subgraph Ingest
+        D[dashboard stage<br/>browser login, token, download CSV]
+        K[lark stage<br/>Open API, raw CSV, transforms]
+    end
+
+    Q{archive stage<br/>quality checks}
+    P[(Parquet archive<br/>data/archive, optional S3/MinIO)]
+    R[(PostgreSQL<br/>raw tables, all TEXT)]
+    S[dbt staging<br/>typed and cleaned views]
+    M[dbt marts<br/>dims and facts]
+    H[Spark job<br/>deduplicated history]
+    B[Streamlit dashboard]
+    O[monitor<br/>freshness and run history]
+    N[[Lark webhook alerts]]
+
+    A --> D --> Q
+    L --> K --> Q
+    Q -- pass --> P
+    Q -- pass --> R
+    Q -- fail --> N
+    P --> H
+    R --> S --> M --> B
+    R --> O --> N
 ```
- BI dashboard (Aeolus) --\
-                          +--> CSV files --> transform --> PostgreSQL
- Lark Sheets / Lark Base -/
-```
+
+More diagrams (daily schedule, how one report is loaded, backfill, dbt layers) in [docs/workflow.md](docs/workflow.md).
 
 Stages, each runnable on its own:
 
