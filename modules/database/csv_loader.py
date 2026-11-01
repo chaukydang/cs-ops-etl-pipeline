@@ -3,8 +3,11 @@ from __future__ import annotations
 import csv
 import glob
 import hashlib
+import json
+import os
 import re
 from dataclasses import dataclass
+from datetime import date, timedelta
 from pathlib import Path
 
 from psycopg import sql
@@ -17,6 +20,11 @@ class CsvDefinition:
     file_pattern: str
     enabled: bool = True
     recursive: bool = True
+    # "replace": truncate and reload (full snapshots, e.g. Lark sheets)
+    # "incremental": delete the downloaded date window, insert the new rows,
+    #                keep everything older (rolling dashboard exports)
+    load_mode: str = "replace"
+    date_column: str | None = None
 
 
 @dataclass(frozen=True)
@@ -49,8 +57,8 @@ class CsvDatabaseLoader:
         if not self.schema_name:
             raise ValueError("schema_name cannot be empty")
 
-    def initialize_table(self, source):
-        file_path = self.find_latest_file(source)
+    def initialize_table(self, source, file_path=None):
+        file_path = Path(file_path).resolve() if file_path else self.find_latest_file(source)
         profile = self.profile_csv(file_path)
 
         try:
@@ -131,9 +139,22 @@ class CsvDatabaseLoader:
             "columns": len(profile.database_headers),
         }
 
-    def load_table(self, source):
-        file_path = self.find_latest_file(source)
+    def load_table(self, source, file_path=None, window=None):
+        """Load one CSV into the source's table.
+
+        file_path: load this file instead of the newest match (used by backfill).
+        window:    (date_from, date_to) as dates; overrides the sidecar file.
+        """
+        if source.load_mode not in ("replace", "incremental"):
+            raise ValueError(
+                "{}: unknown load_mode {!r}".format(source.name, source.load_mode)
+            )
+        if source.load_mode == "incremental" and not source.date_column:
+            raise ValueError("{}: incremental load needs date_column".format(source.name))
+
+        file_path = Path(file_path).resolve() if file_path else self.find_latest_file(source)
         profile = self.profile_csv(file_path)
+        stats = {}
 
         try:
             with self.connection.cursor() as cursor:
@@ -181,45 +202,32 @@ class CsvDatabaseLoader:
                         )
                     )
 
-                cursor.execute(
-                    sql.SQL("TRUNCATE TABLE {}.{} RESTART IDENTITY").format(
-                        sql.Identifier(self.schema_name),
-                        sql.Identifier(source.table_name),
+                if source.load_mode == "incremental":
+                    stats = self._replace_window(
+                        cursor, source, profile, temp_table, window
                     )
-                )
-
-                insert_columns = (
-                    profile.database_headers + self.LOAD_METADATA_COLUMNS
-                )
-                cursor.execute(
-                    sql.SQL(
-                        "INSERT INTO {}.{} ({}) SELECT {} FROM {}"
-                    ).format(
-                        sql.Identifier(self.schema_name),
-                        sql.Identifier(source.table_name),
-                        sql.SQL(", ").join(
-                            [sql.Identifier(name) for name in insert_columns]
-                        ),
-                        sql.SQL(", ").join(
-                            [sql.Identifier(name) for name in insert_columns]
-                        ),
-                        sql.Identifier(temp_table),
-                    )
-                )
-
-                final_count = self.count_rows(
-                    cursor,
-                    source.table_name,
-                    temporary=False,
-                )
-                if final_count != profile.row_count:
-                    raise RuntimeError(
-                        "Final count mismatch for {}: CSV={}, DB={}".format(
-                            source.name,
-                            profile.row_count,
-                            final_count,
+                else:
+                    cursor.execute(
+                        sql.SQL("TRUNCATE TABLE {}.{} RESTART IDENTITY").format(
+                            sql.Identifier(self.schema_name),
+                            sql.Identifier(source.table_name),
                         )
                     )
+                    self._insert_from_temp(cursor, source, profile, temp_table)
+
+                    final_count = self.count_rows(
+                        cursor,
+                        source.table_name,
+                        temporary=False,
+                    )
+                    if final_count != profile.row_count:
+                        raise RuntimeError(
+                            "Final count mismatch for {}: CSV={}, DB={}".format(
+                                source.name,
+                                profile.row_count,
+                                final_count,
+                            )
+                        )
 
             self.connection.commit()
         except Exception:
@@ -233,7 +241,127 @@ class CsvDatabaseLoader:
             "file": str(file_path),
             "rows": profile.row_count,
             "columns": len(profile.database_headers),
+            "mode": source.load_mode,
+            **stats,
         }
+
+    def _insert_from_temp(self, cursor, source, profile, temp_table):
+        insert_columns = profile.database_headers + self.LOAD_METADATA_COLUMNS
+        names = sql.SQL(", ").join([sql.Identifier(name) for name in insert_columns])
+        cursor.execute(
+            sql.SQL("INSERT INTO {}.{} ({}) SELECT {} FROM {}").format(
+                sql.Identifier(self.schema_name),
+                sql.Identifier(source.table_name),
+                names,
+                names,
+                sql.Identifier(temp_table),
+            )
+        )
+        return cursor.rowcount
+
+    # ISO dates sort the same as text, so the window can be compared as text
+    # and a plain btree index on the column is usable.
+    ISO_DATE_REGEX = r"^[0-9]{4}-[0-9]{2}-[0-9]{2}"
+
+    def _replace_window(self, cursor, source, profile, temp_table, window):
+        column = sql.Identifier(source.date_column)
+        if source.date_column not in profile.database_headers:
+            raise ValueError(
+                "{}: date_column {!r} is not in the CSV".format(
+                    source.name, source.date_column
+                )
+            )
+        if profile.row_count == 0:
+            raise ValueError(
+                "{}: CSV has no rows; refusing to clear the date window".format(source.name)
+            )
+
+        cursor.execute(
+            sql.SQL(
+                "SELECT count(*) FILTER (WHERE {c} IS NULL OR {c} !~ %(rx)s), "
+                "min(left({c}, 10)) FILTER (WHERE {c} ~ %(rx)s), "
+                "max(left({c}, 10)) FILTER (WHERE {c} ~ %(rx)s) FROM {t}"
+            ).format(c=column, t=sql.Identifier(temp_table)),
+            {"rx": self.ISO_DATE_REGEX},
+        )
+        invalid, csv_min, csv_max = cursor.fetchone()
+        if invalid:
+            raise ValueError(
+                "{}: {} rows have no valid date in {}".format(
+                    source.name, invalid, source.date_column
+                )
+            )
+
+        date_from, date_to = self.resolve_window(profile.file_path, window, csv_min, csv_max)
+        if csv_min < date_from.isoformat() or csv_max > date_to.isoformat():
+            raise ValueError(
+                "{}: rows fall outside the downloaded window {}..{} (CSV has {}..{})".format(
+                    source.name, date_from, date_to, csv_min, csv_max
+                )
+            )
+
+        self.ensure_date_index(cursor, source)
+
+        cursor.execute(
+            sql.SQL("DELETE FROM {}.{} WHERE {} >= %s AND {} < %s").format(
+                sql.Identifier(self.schema_name),
+                sql.Identifier(source.table_name),
+                column,
+                column,
+            ),
+            (date_from.isoformat(), (date_to + timedelta(days=1)).isoformat()),
+        )
+        deleted = cursor.rowcount
+
+        inserted = self._insert_from_temp(cursor, source, profile, temp_table)
+        if inserted != profile.row_count:
+            raise RuntimeError(
+                "Insert count mismatch for {}: CSV={}, inserted={}".format(
+                    source.name, profile.row_count, inserted
+                )
+            )
+
+        # A window that suddenly shrinks usually means a partial download.
+        max_shrink = float(os.getenv("LOAD_MAX_SHRINK_RATIO", "0.5"))
+        if deleted >= 100 and inserted < deleted * (1 - max_shrink):
+            raise ValueError(
+                "{}: window {}..{} would shrink from {} to {} rows; "
+                "set LOAD_MAX_SHRINK_RATIO to allow it".format(
+                    source.name, date_from, date_to, deleted, inserted
+                )
+            )
+
+        return {
+            "window": [date_from.isoformat(), date_to.isoformat()],
+            "deleted": deleted,
+            "inserted": inserted,
+        }
+
+    @staticmethod
+    def resolve_window(file_path, window, csv_min, csv_max):
+        """Window precedence: explicit argument, sidecar from the downloader, CSV range."""
+        if window:
+            return window
+
+        sidecar = Path(str(file_path) + ".meta.json")
+        if sidecar.exists():
+            meta = json.loads(sidecar.read_text(encoding="utf-8"))
+            return (date.fromisoformat(meta["date_from"]), date.fromisoformat(meta["date_to"]))
+
+        return (date.fromisoformat(csv_min), date.fromisoformat(csv_max))
+
+    def ensure_date_index(self, cursor, source):
+        index_name = self.make_identifier(
+            "ix_{}_{}".format(source.table_name, source.date_column), max_length=63
+        )
+        cursor.execute(
+            sql.SQL("CREATE INDEX IF NOT EXISTS {} ON {}.{} ({})").format(
+                sql.Identifier(index_name),
+                sql.Identifier(self.schema_name),
+                sql.Identifier(source.table_name),
+                sql.Identifier(source.date_column),
+            )
+        )
 
     def copy_csv_to_temp(self, cursor, source, profile, temp_table):
         copy_columns = profile.database_headers + self.LOAD_METADATA_COLUMNS

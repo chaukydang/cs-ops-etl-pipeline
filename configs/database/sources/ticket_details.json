@@ -3,5 +3,7 @@
   "table_name": "tickets",
   "file_pattern": "downloads/dashboard/**/ticket_details-*.csv",
   "enabled": true,
-  "recursive": true
+  "recursive": true,
+  "load_mode": "incremental",
+  "date_column": "create_date"
 }

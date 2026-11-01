@@ -3,5 +3,7 @@
   "table_name": "csat",
   "file_pattern": "downloads/dashboard/**/csat_details-*.csv",
   "enabled": true,
-  "recursive": true
+  "recursive": true,
+  "load_mode": "incremental",
+  "date_column": "official_csat_survey_submit_date"
 }

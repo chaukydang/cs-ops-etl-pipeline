@@ -3,5 +3,7 @@
   "table_name": "forecast_actual",
   "file_pattern": "downloads/dashboard/**/fc_actual_details-*.csv",
   "enabled": true,
-  "recursive": true
+  "recursive": true,
+  "load_mode": "incremental",
+  "date_column": "business_date"
 }

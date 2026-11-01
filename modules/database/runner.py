@@ -120,6 +120,8 @@ class DatabaseRunner:
                 file_pattern=str(data["file_pattern"]).strip(),
                 enabled=bool(data.get("enabled", True)),
                 recursive=bool(data.get("recursive", True)),
+                load_mode=str(data.get("load_mode", "replace")).strip().lower(),
+                date_column=(str(data["date_column"]).strip() if data.get("date_column") else None),
             )
             if definition.enabled:
                 definitions.append(definition)

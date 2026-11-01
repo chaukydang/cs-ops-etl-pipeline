@@ -3,5 +3,7 @@
   "table_name": "productivity_daily",
   "file_pattern": "downloads/dashboard/**/cph_details-*.csv",
   "enabled": true,
-  "recursive": true
+  "recursive": true,
+  "load_mode": "incremental",
+  "date_column": "business_date"
 }
