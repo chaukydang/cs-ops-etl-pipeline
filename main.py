@@ -19,13 +19,15 @@ def parse_arguments() -> argparse.Namespace:
         choices=(
             "dashboard",
             "lark",
+            "archive",
             "database",
             "all",
         ),
         default="all",
         help=(
-            "Module to run: dashboard, lark, database, or all. "
-            "The all option runs dashboard, then lark, then database load."
+            "Module to run: dashboard, lark, archive, database, or all. "
+            "The all option runs dashboard, lark, archive (quality check + "
+            "Parquet), then database load."
         ),
     )
 
@@ -126,6 +128,46 @@ def run_lark_module(
     except Exception as error:
         print(
             "[PIPELINE FAILED] Lark | "
+            "{}: {}".format(
+                type(error).__name__,
+                error,
+            )
+        )
+
+        return False
+
+
+def run_archive_module(
+    source_name: str | None,
+) -> bool:
+    try:
+        from modules.storage.runner import ArchiveRunner
+
+        print()
+        print("[PIPELINE] Starting archive module...")
+
+        result = ArchiveRunner(
+            BASE_DIR
+        ).run(
+            source_name=source_name,
+        )
+
+        if result.get("failed"):
+            print(
+                "[PIPELINE FAILED] Archive | "
+                "failed sources={}".format(
+                    len(result["failed"])
+                )
+            )
+
+            return False
+
+        print("[PIPELINE] Archive module completed.")
+        return True
+
+    except Exception as error:
+        print(
+            "[PIPELINE FAILED] Archive | "
             "{}: {}".format(
                 type(error).__name__,
                 error,
@@ -265,6 +307,13 @@ def main() -> None:
 
         has_failure = not lark_ok
 
+    elif arguments.module == "archive":
+        archive_ok = run_archive_module(
+            source_name=arguments.source,
+        )
+
+        has_failure = not archive_ok
+
     elif arguments.module == "database":
         database_ok = run_database_module(
             action=arguments.action,
@@ -287,7 +336,17 @@ def main() -> None:
         if not lark_ok:
             has_failure = True
 
+        archive_ok = False
+
         if dashboard_ok and lark_ok:
+            archive_ok = run_archive_module(
+                source_name=None,
+            )
+
+            if not archive_ok:
+                has_failure = True
+
+        if dashboard_ok and lark_ok and archive_ok:
             database_ok = run_database_module(
                 action="load",
                 source_name=None,
@@ -300,7 +359,7 @@ def main() -> None:
             print()
             print(
                 "[PIPELINE SKIPPED] Database load was skipped "
-                "because dashboard or Lark failed."
+                "because dashboard, Lark or archive failed."
             )
 
             has_failure = True

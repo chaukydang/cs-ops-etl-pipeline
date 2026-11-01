@@ -291,7 +291,8 @@ def create_auth_manager() -> AeolusAuthManager:
         manual_mfa_timeout=300,
         otp_timeout=180,
         token_capture_timeout=120,
-        headless=False,
+        headless=(get_optional_env("AEOLUS_HEADLESS", "false") or "false").lower()
+        in ("1", "true", "yes"),
     )
 
 

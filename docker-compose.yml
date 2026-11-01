@@ -1,0 +1,70 @@
+# Local stack: PostgreSQL (target), MinIO (Parquet archive), Airflow (scheduler + UI).
+# Credentials below are for local use only.
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: warehouse
+      POSTGRES_USER: etl
+      POSTGRES_PASSWORD: etl_local
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U etl -d warehouse"]
+      interval: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio_local
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+
+  minio-init:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set local http://minio:9000 minio minio_local; do sleep 2; done;
+      mc mb --ignore-existing local/cs-ops-archive"
+
+  airflow:
+    build: .
+    command: standalone
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: warehouse
+      DB_USER: etl
+      DB_PASSWORD: etl_local
+      DB_SSLMODE: disable
+      ARCHIVE_DIR: /opt/airflow/pipeline/data/archive
+      ARCHIVE_S3_BUCKET: cs-ops-archive
+      ARCHIVE_S3_ENDPOINT: http://minio:9000
+      ARCHIVE_S3_ACCESS_KEY: minio
+      ARCHIVE_S3_SECRET_KEY: minio_local
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./dags:/opt/airflow/pipeline/dags
+      - pipeline_data:/opt/airflow/pipeline/data
+      - pipeline_downloads:/opt/airflow/pipeline/downloads
+
+volumes:
+  pgdata:
+  miniodata:
+  pipeline_data:
+  pipeline_downloads:
