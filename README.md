@@ -1,4 +1,4 @@
-# service-data-pipeline
+# aeolus-lark-postgres-etl
 
 Daily ETL for the customer service operations reports. It pulls data from three places, cleans it up, and loads it into PostgreSQL so the dashboards read from one database instead of a pile of exports.
 
