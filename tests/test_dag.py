@@ -13,7 +13,8 @@ def test_dag_structure(monkeypatch):
     spec.loader.exec_module(module)
 
     dag = module.dag
-    assert set(dag.task_ids) == {"dashboard", "lark", "archive", "load_postgres", "dbt_build"}
+    assert set(dag.task_ids) == {"dashboard", "lark", "archive", "load_postgres", "dbt_build", "spark_history"}
     assert dag.get_task("archive").upstream_task_ids == {"dashboard", "lark"}
     assert dag.get_task("load_postgres").upstream_task_ids == {"archive"}
     assert dag.get_task("dbt_build").upstream_task_ids == {"load_postgres"}
+    assert dag.get_task("spark_history").upstream_task_ids == {"archive"}

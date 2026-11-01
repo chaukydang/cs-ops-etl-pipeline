@@ -67,3 +67,18 @@ jobs:
             python main.py --module database --action load --source "$s"
           done
       - run: dbt build --project-dir dbt --profiles-dir dbt
+
+  spark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - run: pip install -r requirements-spark.txt pytest
+      - run: pytest -q tests/test_spark_history.py

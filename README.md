@@ -104,9 +104,24 @@ raw (schema Service) -> staging (views, typed + cleaned) -> marts (tables)
 
 Tests cover keys, grain uniqueness, relationships between facts and dimensions, and value ranges. Connection settings come from the same `DB_*` variables as the pipeline. Marts are written to `staging` / `marts` schemas in the same database.
 
+## Long-term history (Spark)
+
+Each daily download covers only a rolling ~5-week window, so the same business date shows up in many archived snapshots, sometimes with corrected numbers. `spark/productivity_history.py` rebuilds a clean history from the Parquet archive:
+
+1. reads every `dt=` snapshot of `cph_details`,
+2. keeps the row from the newest snapshot for each agent / date / segment / skill group (late corrections win),
+3. writes `data/lake/productivity_history/` (partitioned by month), `agent_weekly_trend/` (weekly CPH with a rolling 4-week average) and `tenure_monthly/` (CPH by tenure band).
+
+```bash
+pip install -r requirements-spark.txt      # needs Java 17+
+python -m spark.productivity_history --archive-dir data/archive --out-dir data/lake
+```
+
+At the current volume (a few hundred thousand rows a day at most) plain pandas would also do the job; the point of Spark here is that the history keeps growing and the dedupe-by-latest-snapshot step scales with it.
+
 ## Scheduling with Airflow
 
-`dags/cs_ops_etl.py` runs the stages daily at 07:00 (Asia/Ho_Chi_Minh): `dashboard` and `lark` in parallel, then `archive`, then `load_postgres`, then `dbt_build`. Each task just calls `python main.py --module ...`, so a failed task can be reproduced by hand.
+`dags/cs_ops_etl.py` runs the stages daily at 07:00 (Asia/Ho_Chi_Minh): `dashboard` and `lark` in parallel, then `archive`, then `load_postgres`, then `dbt_build`; `spark_history` runs next to the load. Each task just calls `python main.py --module ...`, so a failed task can be reproduced by hand.
 
 A local stack (PostgreSQL, MinIO, Airflow) is defined in `docker-compose.yml`:
 
@@ -147,6 +162,7 @@ modules/
   lark/                     API clients, raw download, transforms
   storage/                  quality checks, Parquet archive, S3 upload
   database/                 connection, CSV profiling and loading
+spark/                      history rebuild job (PySpark)
 dbt/                        staging + mart models, macros, tests
 scripts/                    synthetic data generator
 dags/                       Airflow DAG

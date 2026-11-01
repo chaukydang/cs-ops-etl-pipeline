@@ -1,5 +1,6 @@
 """Daily DAG: dashboard + lark in parallel, then archive (quality check +
-Parquet), then PostgreSQL load, then dbt (staging, marts, tests). Each task calls the same CLI used locally,
+Parquet), then PostgreSQL load, then dbt (staging, marts, tests). A Spark job builds the long-term
+productivity history from the Parquet archive in parallel with the load. Each task calls the same CLI used locally,
 so a failed task can be reproduced with `python main.py --module <name>`.
 """
 
@@ -55,4 +56,15 @@ with DAG(
         execution_timeout=timedelta(minutes=30),
     )
 
+    spark_history = BashOperator(
+        task_id="spark_history",
+        bash_command=(
+            f"cd {PROJECT_DIR} && "
+            "/home/airflow/spark-venv/bin/python -m spark.productivity_history "
+            "--archive-dir data/archive --out-dir data/lake"
+        ),
+        execution_timeout=timedelta(minutes=60),
+    )
+
     [dashboard, lark] >> archive >> load >> dbt_build
+    archive >> spark_history
