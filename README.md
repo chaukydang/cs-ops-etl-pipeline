@@ -1,4 +1,4 @@
-# aeolus-lark-postgres-etl
+# cs-ops-etl-pipeline
 
 Daily ETL for the customer service operations reports. It pulls data from three places, cleans it up, and loads it into PostgreSQL so the dashboards read from one database instead of a pile of exports.
 
@@ -105,3 +105,7 @@ pytest
 ```
 
 The tests cover the pure helpers (env/config parsing, date-window calculation, header and identifier normalisation). The download and database stages need real credentials and are not covered.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
