@@ -63,6 +63,24 @@ services:
       - pipeline_data:/opt/airflow/pipeline/data
       - pipeline_downloads:/opt/airflow/pipeline/downloads
 
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: warehouse
+      DB_USER: etl
+      DB_PASSWORD: etl_local
+      DB_SSLMODE: disable
+      DB_SCHEMA: Service
+    ports:
+      - "8501:8501"
+
 volumes:
   pgdata:
   miniodata:

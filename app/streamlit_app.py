@@ -1,0 +1,109 @@
+"""Operations dashboard on top of the dbt marts.
+
+    streamlit run app/streamlit_app.py
+"""
+
+from __future__ import annotations
+
+import os
+import sys
+from datetime import timedelta
+from pathlib import Path
+
+import streamlit as st
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from app import data  # noqa: E402
+
+st.set_page_config(page_title="CS operations", layout="wide")
+
+
+@st.cache_data(ttl=300)
+def cached(name: str, *args):
+    return getattr(data, name)(*args)
+
+
+def pct(value) -> str:
+    return "-" if value is None or value != value else f"{float(value):.1%}"
+
+
+def num(value, digits: int = 0) -> str:
+    return "-" if value is None or value != value else f"{float(value):,.{digits}f}"
+
+
+st.title("Customer service operations")
+
+try:
+    first_day, last_day = cached("date_bounds")
+except Exception as error:  # noqa: BLE001
+    st.error(f"Cannot read the marts schema. Run the pipeline and `dbt build` first.\n\n{error}")
+    st.stop()
+
+with st.sidebar:
+    st.header("Filters")
+    default_start = max(first_day, last_day - timedelta(days=27))
+    picked = st.date_input("Date range", (default_start, last_day), min_value=first_day, max_value=last_day)
+    start, end = (picked if len(picked) == 2 else (picked[0], picked[0]))
+    skills = st.multiselect("Skill group", cached("skill_groups"))
+
+k = cached("kpis", start, end, skills)
+cols = st.columns(6)
+cols[0].metric("Tickets closed", num(k["closed"]))
+cols[1].metric("CPH", num(k["cph"], 2))
+cols[2].metric("Occupancy", pct(k["occupancy"]))
+cols[3].metric("CSAT", pct(k["csat"]))
+cols[4].metric("FCR", pct(k["fcr"]))
+cols[5].metric("On-time attendance", pct(k["on_time"]))
+
+tab_prod, tab_tickets, tab_backlog, tab_forecast, tab_agents, tab_health = st.tabs(
+    ["Productivity", "Tickets and CSAT", "Backlog", "Forecast", "Agents", "Pipeline health"]
+)
+
+with tab_prod:
+    weekly = cached("weekly_productivity", start, end, skills)
+    if weekly.empty:
+        st.info("No productivity data in this range.")
+    else:
+        st.subheader("CPH by week")
+        st.line_chart(weekly.pivot(index="week_start", columns="segment", values="cph"))
+
+with tab_tickets:
+    left, right = st.columns(2)
+    tickets = cached("daily_tickets", start, end, skills)
+    csat = cached("daily_csat", start, end, skills)
+    left.subheader("Tickets created vs closed")
+    if not tickets.empty:
+        left.bar_chart(tickets.set_index("create_date")[["tickets", "closed_tickets"]])
+    right.subheader("CSAT (share of 4-5 scores)")
+    if not csat.empty:
+        right.line_chart(csat.set_index("survey_date")["csat_pct"])
+
+with tab_backlog:
+    backlog = cached("backlog", start, end)
+    st.subheader("Open tickets by user type")
+    if not backlog.empty:
+        st.area_chart(backlog.pivot(index="backlog_date", columns="user_type", values="open_tickets"))
+
+with tab_forecast:
+    fc = cached("forecast", start, end, skills)
+    st.subheader("Forecast vs actual traffic")
+    if not fc.empty:
+        st.line_chart(fc.set_index("business_date")[["forecast", "actual"]])
+        error = (fc["actual"] - fc["forecast"]).abs().sum() / max(fc["actual"].sum(), 1)
+        st.caption(f"Weighted absolute error over the range: {error:.1%}")
+
+with tab_agents:
+    available = cached("weeks")
+    if available:
+        week = st.selectbox("Week starting", available)
+        show_email = os.getenv("SHOW_AGENT_EMAIL", "0") == "1"
+        st.dataframe(cached("agent_scorecard", week, show_email), use_container_width=True, hide_index=True)
+        if not show_email:
+            st.caption("Agents are shown by hashed id. Set SHOW_AGENT_EMAIL=1 to show e-mails.")
+
+with tab_health:
+    try:
+        st.dataframe(cached("recent_runs"), use_container_width=True, hide_index=True)
+    except Exception:  # noqa: BLE001
+        st.info("No run history yet (table pipeline_runs is created on the first database load).")
