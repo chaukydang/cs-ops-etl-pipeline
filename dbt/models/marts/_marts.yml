@@ -1,0 +1,76 @@
+version: 2
+
+models:
+  - name: dim_date
+    columns:
+      - name: date_day
+        tests: [unique, not_null]
+
+  - name: dim_agent
+    description: One row per agent, latest attributes.
+    columns:
+      - name: agent_key
+        tests: [unique, not_null]
+      - name: tier
+        tests:
+          - accepted_values:
+              values: ["Tier 1 Agent", "Tier 2 Agent"]
+              config: {severity: warn}
+
+  - name: fct_productivity_daily
+    description: Grain is agent x day x segment x skill group.
+    tests:
+      - unique:
+          column_name: "agent_key || business_date::text || segment || skill_group"
+          config: {severity: warn}
+    columns:
+      - name: agent_key
+        tests:
+          - not_null
+          - relationships: {to: ref('dim_agent'), field: agent_key}
+      - name: business_date
+        tests:
+          - not_null
+          - relationships: {to: ref('dim_date'), field: date_day}
+
+  - name: fct_attendance_daily
+    description: Grain is agent x day.
+    tests:
+      - unique:
+          column_name: "agent_key || schedule_date::text"
+    columns:
+      - name: agent_key
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_agent')
+              field: agent_key
+              config: {severity: warn}
+
+  - name: fct_tickets_daily
+    columns:
+      - name: tickets
+        tests: [not_null]
+
+  - name: fct_csat_daily
+    columns:
+      - name: csat_pct
+        tests:
+          - dbt_utils_free_range:
+              min_value: 0
+              max_value: 1
+
+  - name: fct_backlog_daily
+    tests:
+      - unique:
+          column_name: "backlog_date::text || user_type"
+
+  - name: fct_forecast_vs_actual
+    tests:
+      - unique:
+          column_name: "business_date::text || skill_group"
+
+  - name: mart_agent_weekly
+    tests:
+      - unique:
+          column_name: "agent_key || week_start::text"

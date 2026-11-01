@@ -1,0 +1,21 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Tables written by the `database` stage (everything is TEXT).
+    schema: "{{ env_var('DB_SCHEMA', 'Service') }}"
+    quoting:
+      schema: true
+    tables:
+      - name: productivity_daily
+        description: Agent x day x segment productivity (CPH report).
+      - name: tickets
+        description: One row per ticket.
+      - name: csat
+        description: One row per CSAT survey response.
+      - name: attendance
+        description: Agent x day attendance, plus department "Sum" roll-up rows.
+      - name: backlog_daily
+        description: Daily backlog counts by user type.
+      - name: forecast_actual
+        description: Daily forecast vs actual traffic and FTE per skill group.
