@@ -1,0 +1,317 @@
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+from modules.core.env_loader import load_env_file
+
+BASE_DIR = Path(__file__).resolve().parent
+ENV_FILE = BASE_DIR / ".env"
+
+
+def parse_arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Dashboard, Lark, and PostgreSQL data pipeline"
+    )
+
+    parser.add_argument(
+        "--module",
+        choices=(
+            "dashboard",
+            "lark",
+            "database",
+            "all",
+        ),
+        default="all",
+        help=(
+            "Module to run: dashboard, lark, database, or all. "
+            "The all option runs dashboard, then lark, then database load."
+        ),
+    )
+
+    parser.add_argument(
+        "--source",
+        default=None,
+        help=(
+            "Run one source only. Examples: ticket_details, "
+            "ProductivityDataReportRaw, or ConvertRoster."
+        ),
+    )
+
+    parser.add_argument(
+        "--type",
+        dest="source_type",
+        default=None,
+        help=(
+            "Filter Lark sources by type. "
+            "Examples: sheet_raw, base, transform."
+        ),
+    )
+
+    parser.add_argument(
+        "--action",
+        choices=(
+            "init",
+            "load",
+        ),
+        default="load",
+        help=(
+            "Database action. init creates missing tables once. "
+            "load validates existing tables and replaces their data."
+        ),
+    )
+
+    return parser.parse_args()
+
+
+def run_dashboard_module() -> bool:
+    try:
+        from modules.dashboard.runner import main as run_dashboard
+
+        print()
+        print("[PIPELINE] Starting dashboard module...")
+
+        run_dashboard()
+
+        print("[PIPELINE] Dashboard module completed.")
+        return True
+
+    except Exception as error:
+        print(
+            "[PIPELINE FAILED] Dashboard | "
+            "{}: {}".format(
+                type(error).__name__,
+                error,
+            )
+        )
+
+        return False
+
+
+def run_lark_module(
+    source_type: str | None,
+    source_name: str | None,
+) -> bool:
+    try:
+        from modules.lark.module_runner import LarkModuleRunner
+
+        print()
+        print("[PIPELINE] Starting Lark module...")
+
+        result = LarkModuleRunner(
+            BASE_DIR
+        ).run(
+            source_type=source_type,
+            source_name=source_name,
+        )
+
+        failed = result.get(
+            "failed",
+            [],
+        )
+
+        if failed:
+            print(
+                "[PIPELINE FAILED] Lark | "
+                "failed sources={}".format(
+                    len(failed)
+                )
+            )
+
+            return False
+
+        print("[PIPELINE] Lark module completed.")
+        return True
+
+    except Exception as error:
+        print(
+            "[PIPELINE FAILED] Lark | "
+            "{}: {}".format(
+                type(error).__name__,
+                error,
+            )
+        )
+
+        return False
+
+
+def run_database_module(
+    action: str,
+    source_name: str | None,
+) -> bool:
+    try:
+        from modules.database.runner import DatabaseRunner
+
+        print()
+        print(
+            "[PIPELINE] Starting database module | "
+            "action={}...".format(action)
+        )
+
+        result = DatabaseRunner(
+            BASE_DIR
+        ).run(
+            action=action,
+            source_name=source_name,
+        )
+
+        failed = result.get(
+            "failed",
+            [],
+        )
+
+        if failed:
+            print(
+                "[PIPELINE FAILED] Database | "
+                "failed sources={}".format(
+                    len(failed)
+                )
+            )
+
+            return False
+
+        print("[PIPELINE] Database module completed.")
+        return True
+
+    except Exception as error:
+        print(
+            "[PIPELINE FAILED] Database | "
+            "{}: {}".format(
+                type(error).__name__,
+                error,
+            )
+        )
+
+        return False
+
+
+def print_pipeline_header(
+    arguments: argparse.Namespace,
+) -> None:
+    print("========================================")
+    print("DATA PIPELINE")
+    print("========================================")
+    print("Project root: {}".format(BASE_DIR))
+    print("Module: {}".format(arguments.module))
+
+    if arguments.source:
+        print(
+            "Source: {}".format(
+                arguments.source
+            )
+        )
+
+    if arguments.source_type:
+        print(
+            "Source type: {}".format(
+                arguments.source_type
+            )
+        )
+
+    if arguments.module == "database":
+        print(
+            "Database action: {}".format(
+                arguments.action
+            )
+        )
+
+    print("========================================")
+
+
+def print_pipeline_result(
+    has_failure: bool,
+) -> None:
+    print()
+    print("========================================")
+    print("PIPELINE RESULT")
+    print("========================================")
+
+    if has_failure:
+        print("Status: FAILED")
+    else:
+        print("Status: COMPLETED")
+
+    print("========================================")
+
+
+def main() -> None:
+    if not ENV_FILE.exists():
+        raise FileNotFoundError(
+            "Environment file not found: {}".format(
+                ENV_FILE
+            )
+        )
+
+    load_env_file(
+        ENV_FILE
+    )
+
+    arguments = parse_arguments()
+    has_failure = False
+
+    print_pipeline_header(
+        arguments
+    )
+
+    if arguments.module == "dashboard":
+        dashboard_ok = run_dashboard_module()
+        has_failure = not dashboard_ok
+
+    elif arguments.module == "lark":
+        lark_ok = run_lark_module(
+            source_type=arguments.source_type,
+            source_name=arguments.source,
+        )
+
+        has_failure = not lark_ok
+
+    elif arguments.module == "database":
+        database_ok = run_database_module(
+            action=arguments.action,
+            source_name=arguments.source,
+        )
+
+        has_failure = not database_ok
+
+    elif arguments.module == "all":
+        dashboard_ok = run_dashboard_module()
+
+        if not dashboard_ok:
+            has_failure = True
+
+        lark_ok = run_lark_module(
+            source_type=arguments.source_type,
+            source_name=None,
+        )
+
+        if not lark_ok:
+            has_failure = True
+
+        if dashboard_ok and lark_ok:
+            database_ok = run_database_module(
+                action="load",
+                source_name=None,
+            )
+
+            if not database_ok:
+                has_failure = True
+
+        else:
+            print()
+            print(
+                "[PIPELINE SKIPPED] Database load was skipped "
+                "because dashboard or Lark failed."
+            )
+
+            has_failure = True
+
+    print_pipeline_result(
+        has_failure
+    )
+
+    if has_failure:
+        raise SystemExit(1)
+
+
+if __name__ == "__main__":
+    main()
