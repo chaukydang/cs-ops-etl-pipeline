@@ -214,29 +214,45 @@ def main() -> None:
                 cph.append(row)
     write("cph_details", "cph_details", cph, stamp)
 
-    # tickets
+    # tickets (columns are located by header text, not position)
+    tkt = HEADERS["ticket_details"]
+
+    def at(prefix: str) -> int:
+        return next(i for i, h in enumerate(tkt) if h.lower().startswith(prefix))
+
+    i_create, i_close, i_submit = at("create_date"), at("close_date"), at("overall submit")
+    i_id, i_skill, i_email = at("ticket_id"), at("ticket_skill_group"), at("final_dealer_email")
+    i_user, i_type, i_country = at("user_type"), at("ticket_type"), at("country")
+    i_channel, i_im_skill = at("ticket_channel"), at("im_skill_group")
+    i_create_flag = tkt.index("Create")
+    i_score, i_frt = at("overall_survey_score"), at("total_first_response")
+    i_fcr, i_res = at("first_contact_resolution"), at("resolution hours")
+    i_24h = at("official ticket_24h")
+
     tickets = []
     for day in days:
         for n in range(rnd.randint(150, 260)):
             agent = rnd.choice(agents)
-            row = [""] * len(HEADERS["ticket_details"])
+            row = [""] * len(tkt)
+            resolution = round(rnd.uniform(0.02, 30), 4)
             closed_day = day + timedelta(days=rnd.choice([0, 0, 0, 1]))
-            row[0] = day.isoformat()
-            row[1] = closed_day.isoformat()
-            row[2] = "1970-01-01"
-            row[3] = f"T{day:%y%m%d}{n:05d}"
-            row[4] = agent["skill"]
-            row[5] = agent["email"]
-            row[6] = rnd.choice(USER_TYPES)
-            row[7] = "Question"
-            row[11] = "VN"
-            row[12] = rnd.choice(["IM", "Webform"])
-            row[17] = "NULL"
-            row[24] = 1
-            row[25] = rnd.choice(["0", "1", "2", "3", "4", "5"])
-            row[26] = round(rnd.uniform(0.0005, 0.05), 6)
-            row[27] = rnd.choice(["0", "1"])
-            row[28] = round(rnd.uniform(0.02, 30), 4)
+            row[i_create] = day.isoformat()
+            row[i_close] = closed_day.isoformat()
+            row[i_submit] = "1970-01-01"
+            row[i_id] = f"T{day:%y%m%d}{n:05d}"
+            row[i_skill] = agent["skill"]
+            row[i_email] = agent["email"]
+            row[i_user] = rnd.choice(USER_TYPES)
+            row[i_type] = "Question"
+            row[i_country] = "VN"
+            row[i_channel] = rnd.choice(["IM", "Webform"])
+            row[i_im_skill] = "NULL"
+            row[i_create_flag] = 1
+            row[i_score] = 0
+            row[i_frt] = round(rnd.uniform(0.0005, 0.05), 6)
+            row[i_fcr] = rnd.choice(["0", "1"])
+            row[i_res] = resolution
+            row[i_24h] = 1 if resolution <= 24 else 0
             tickets.append(row)
     write("ticket_details", "ticket_details", tickets, stamp)
 

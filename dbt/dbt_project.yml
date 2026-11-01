@@ -17,3 +17,6 @@ models:
     marts:
       +materialized: table
       +schema: marts
+
+flags:
+  send_anonymous_usage_stats: false

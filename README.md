@@ -8,14 +8,16 @@ Daily ETL for the customer service operations reports. It pulls data from three 
  Lark Sheets / Lark Base -/
 ```
 
-Four stages, each runnable on its own:
+Stages, each runnable on its own:
 
 | Stage | What it does |
 |-------|--------------|
 | `dashboard` | Logs in with a real browser (Selenium) to capture the Open-Api-Token, then downloads 8 report CSVs through the export endpoint. Date filters are rewritten on every run to cover the last N weeks. |
 | `lark` | Reads sheets and a Base table through the Lark Open API, dumps them to raw CSV, and applies the cleanup rules for the productivity and backlog sheets. |
 | `archive` | Checks the newest CSV of every source (not empty, no sudden row-count drop versus the previous day), then writes it as date-partitioned Parquet (`data/archive/<source>/dt=YYYY-MM-DD/`). Optionally uploads to S3 / MinIO. |
-| `database` | Loads the newest CSV for each source into its table. Data is loaded into a temp table first, row counts are checked, then the target is truncated and refilled inside one transaction. |
+| `database` | Loads the newest CSV for each source into its table, in one transaction. Dashboard sources are loaded **incrementally** (only the downloaded date window is replaced, older history is kept); Lark sources are full snapshots and replace the table. See below. |
+| `backfill` | Loads years of history month by month, resumable. See below. |
+| `monitor` | Checks that every table has recent data and a recent successful load; posts to Lark if not. |
 
 ## Setup
 
@@ -60,6 +62,46 @@ Check the database credentials without running anything else:
 python check_db_connection.py
 ```
 
+## Incremental loading
+
+The dashboard export only covers a rolling window (about 5 weeks), but the tables hold years of history. A plain truncate-and-reload would throw the history away on every run, so dashboard sources use `"load_mode": "incremental"` with a `date_column` in `configs/database/sources/*.json`:
+
+1. The downloader writes a sidecar `<file>.csv.meta.json` with the date range it asked for.
+2. The loader copies the CSV into a temp table, deletes rows of the target table inside that date range, and inserts the new rows. Everything in one transaction.
+3. Guards that abort the load and leave the table untouched: empty CSV, rows with a missing date, rows outside the downloaded window, and a window that would shrink by more than `LOAD_MAX_SHRINK_RATIO` (default 0.5), which usually means a partial download.
+
+The date column is indexed on first load. Because the raw tables store everything as text, windows are compared as ISO date strings, so the plain btree index is used. Sources without `load_mode` keep the old truncate-and-reload behaviour (Lark sheets, roster).
+
+The export also stops silently at 1,000,000 rows; the downloader now treats a file that reaches the limit as an error and deletes it instead of loading a truncated report.
+
+## Backfill
+
+```bash
+# everything from 2024 up to the start of the rolling window, one month at a time
+python main.py --module backfill --from 2024-01-01 --to 2026-09-26
+
+# a single report, weekly chunks
+python main.py --module backfill --source ticket_details --from 2025-01-01 --to 2025-12-31 --chunk week
+```
+
+Each chunk is downloaded, loaded incrementally and archived as Parquet. A chunk that hits the row limit is split in half automatically. Finished chunks are recorded in `data/backfill_state.json`, so after a failure (expired session, network) running the same command continues where it stopped. Chunk files are deleted after loading unless `--keep-files` is given. After a backfill, rebuild the incremental dbt facts once with `dbt build --full-refresh`.
+
+## Monitoring
+
+- Every database load is written to `<DB_SCHEMA>.pipeline_runs` (stage, source, status, rows, duration, error, details).
+- `python main.py --module monitor` reports sources whose table is missing, whose newest date is more than `max_lag_days` old (per source in the config, default 3), or with no successful load in the last `MONITOR_MAX_LOAD_AGE_HOURS` (default 36). Problems are sent to the Lark webhook and make the command exit non-zero.
+- In Airflow, any failed task posts to the same webhook (`notify_failure` in the DAG), and `monitor` runs as the last task.
+
+## Dashboard
+
+A small Streamlit app on top of the marts: KPIs (tickets closed, CPH, occupancy, CSAT, FCR, on-time attendance), weekly CPH, tickets and CSAT trends, backlog, forecast vs actual, an agent scorecard and the recent pipeline runs. Agents are shown by hashed id unless `SHOW_AGENT_EMAIL=1`.
+
+```bash
+pip install -r requirements-app.txt
+streamlit run app/streamlit_app.py          # uses the DB_* variables
+# or: docker compose up app                 # http://localhost:8501
+```
+
 ## Try it without real data
 
 `scripts/make_demo_data.py` writes synthetic CSVs with the same columns as the real dashboard exports, so everything after the download step can be run locally:
@@ -80,9 +122,10 @@ done
 
 pip install -r requirements-dbt.txt
 dbt build --project-dir dbt --profiles-dir dbt
+streamlit run app/streamlit_app.py
 ```
 
-CI runs exactly this on every push.
+CI runs exactly this on every push, followed by the integration tests in `tests/integration` (incremental load, backfill, monitoring, dashboard).
 
 ## Transformations (dbt)
 
@@ -101,6 +144,8 @@ raw (schema Service) -> staging (views, typed + cleaned) -> marts (tables)
 | `fct_csat_daily` | date x skill group x channel (CSAT = share of 4-5 scores) |
 | `fct_backlog_daily`, `fct_forecast_vs_actual` | day x user type; day x skill group |
 | `mart_agent_weekly` | agent x week (Sunday start): productivity + attendance + CSAT |
+
+`fct_productivity_daily`, `fct_attendance_daily`, `fct_tickets_daily` and `fct_csat_daily` are incremental: each run rebuilds the last `lookback_days` days (default 45, `--vars '{lookback_days: 60}'` to change) and leaves older history alone. Run `dbt build --full-refresh` after a backfill or when you change a model. A group that disappears from the source inside the lookback window stays in the fact until the next full refresh.
 
 Tests cover keys, grain uniqueness, relationships between facts and dimensions, and value ranges. Connection settings come from the same `DB_*` variables as the pipeline. Marts are written to `staging` / `marts` schemas in the same database.
 
@@ -121,7 +166,7 @@ At the current volume (a few hundred thousand rows a day at most) plain pandas w
 
 ## Scheduling with Airflow
 
-`dags/cs_ops_etl.py` runs the stages daily at 07:00 (Asia/Ho_Chi_Minh): `dashboard` and `lark` in parallel, then `archive`, then `load_postgres`, then `dbt_build`; `spark_history` runs next to the load. Each task just calls `python main.py --module ...`, so a failed task can be reproduced by hand.
+`dags/cs_ops_etl.py` runs the stages daily at 07:00 (Asia/Ho_Chi_Minh): `dashboard` and `lark` in parallel, then `archive`, then `load_postgres`, then `dbt_build`, then `monitor`; `spark_history` runs next to the load. Each task just calls `python main.py --module ...`, so a failed task can be reproduced by hand.
 
 A local stack (PostgreSQL, MinIO, Airflow) is defined in `docker-compose.yml`:
 
@@ -158,16 +203,18 @@ main.py                     entry point / CLI
 check_db_connection.py      connection and privilege check
 modules/
   core/                     .env loader, config validation
-  dashboard/                auth (Lark + Outlook OTP), browser session, downloader, notifier
+  dashboard/                auth (Lark + Outlook OTP), browser session, downloader, backfill, notifier
   lark/                     API clients, raw download, transforms
   storage/                  quality checks, Parquet archive, S3 upload
-  database/                 connection, CSV profiling and loading
+  database/                 connection, CSV profiling, incremental/replace loading
+  monitoring/               run history, freshness checks
 spark/                      history rebuild job (PySpark)
 dbt/                        staging + mart models, macros, tests
+app/                        Streamlit dashboard
 scripts/                    synthetic data generator
 dags/                       Airflow DAG
-Dockerfile, docker-compose.yml
-tests/                      pytest
+Dockerfile, Dockerfile.app, docker-compose.yml
+tests/                      pytest (tests/integration needs PostgreSQL)
 ```
 
 ## Notes
@@ -187,7 +234,7 @@ pytest
 
 dbt models are exercised by the `warehouse` CI job (see above).
 
-The tests cover the pure helpers (env/config parsing, date-window calculation, header and identifier normalisation) and the Parquet archive and quality checks. The DAG structure test runs only when Airflow is installed. The download and database stages need real credentials and are not covered.
+`tests/integration` runs against a real PostgreSQL when `DB_HOST` is set (otherwise skipped). The unit tests cover the pure helpers (env/config parsing, date-window calculation, header and identifier normalisation) and the Parquet archive and quality checks. The DAG structure test runs only when Airflow is installed. The download and database stages need real credentials and are not covered.
 
 ## License
 
