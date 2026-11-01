@@ -9,6 +9,10 @@ USER airflow
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
+COPY requirements-dbt.txt /tmp/requirements-dbt.txt
+RUN python -m venv /home/airflow/dbt-venv \
+    && /home/airflow/dbt-venv/bin/pip install --no-cache-dir -r /tmp/requirements-dbt.txt
+
 COPY --chown=airflow:root . /opt/airflow/pipeline
 ENV PIPELINE_HOME=/opt/airflow/pipeline \
     AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/pipeline/dags \

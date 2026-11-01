@@ -17,3 +17,53 @@ jobs:
       - run: pip install -r requirements.txt -r requirements-dev.txt
       - run: ruff check .
       - run: pytest -q
+
+  warehouse:
+    # Synthetic data -> archive -> Postgres -> dbt build. No real credentials.
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: warehouse
+          POSTGRES_USER: etl
+          POSTGRES_PASSWORD: etl
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U etl -d warehouse"
+          --health-interval 5s
+          --health-retries 10
+    env:
+      DB_HOST: localhost
+      DB_PORT: "5432"
+      DB_NAME: warehouse
+      DB_USER: etl
+      DB_PASSWORD: etl
+      DB_SSLMODE: disable
+      DB_SCHEMA: Service
+      PGPASSWORD: etl
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-dbt.txt
+      - run: python scripts/make_demo_data.py --days 14 --agents 30
+      - run: psql -h localhost -U etl -d warehouse -c 'create schema "Service"'
+      - name: write .env for the CLI
+        run: |
+          {
+            echo "DB_HOST=$DB_HOST"; echo "DB_PORT=$DB_PORT"; echo "DB_NAME=$DB_NAME"
+            echo "DB_USER=$DB_USER"; echo "DB_PASSWORD=$DB_PASSWORD"
+            echo "DB_SSLMODE=$DB_SSLMODE"; echo "DB_SCHEMA=$DB_SCHEMA"
+          } > .env
+      - name: archive, init, load
+        run: |
+          for s in cph_details ticket_details csat_details ontime_attendance backlog_details fc_actual_details; do
+            python main.py --module archive --source "$s"
+            python main.py --module database --action init --source "$s"
+            python main.py --module database --action load --source "$s"
+          done
+      - run: dbt build --project-dir dbt --profiles-dir dbt

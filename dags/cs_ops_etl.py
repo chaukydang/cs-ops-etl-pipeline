@@ -1,5 +1,5 @@
 """Daily DAG: dashboard + lark in parallel, then archive (quality check +
-Parquet), then PostgreSQL load. Each task calls the same CLI used locally,
+Parquet), then PostgreSQL load, then dbt (staging, marts, tests). Each task calls the same CLI used locally,
 so a failed task can be reproduced with `python main.py --module <name>`.
 """
 
@@ -44,4 +44,15 @@ with DAG(
     archive = stage("archive", "archive")
     load = stage("load_postgres", "database", "--action load")
 
-    [dashboard, lark] >> archive >> load
+    # dbt lives in its own virtualenv (see Dockerfile) to keep its dependencies
+    # away from Airflow's pinned ones.
+    dbt_build = BashOperator(
+        task_id="dbt_build",
+        bash_command=(
+            f"cd {PROJECT_DIR} && "
+            "/home/airflow/dbt-venv/bin/dbt build --project-dir dbt --profiles-dir dbt"
+        ),
+        execution_timeout=timedelta(minutes=30),
+    )
+
+    [dashboard, lark] >> archive >> load >> dbt_build
