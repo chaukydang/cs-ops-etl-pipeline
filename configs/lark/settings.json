@@ -1,0 +1,8 @@
+{
+  "continue_on_error": true,
+  "directories": {
+    "sheets": "configs/lark/sheets",
+    "base": "configs/lark/base",
+    "transforms": "configs/lark/transforms"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "ProductivityDataReportRaw",
+  "type": "sheet_raw",
+  "enabled": true,
+  "run_order": 10,
+  "spreadsheet_token": "<SPREADSHEET_TOKEN>",
+  "sheet_name": "Productivity Data",
+  "columns": "A:AD",
+  "output": "downloads/lark/sheets/raw/ProductivityDataReportRaw.csv"
+}

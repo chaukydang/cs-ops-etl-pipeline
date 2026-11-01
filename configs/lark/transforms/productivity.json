@@ -1,0 +1,10 @@
+{
+  "name": "ProductivityDataReport",
+  "type": "transform",
+  "enabled": true,
+  "run_order": 110,
+  "depends_on": ["ProductivityDataReportRaw"],
+  "transformer": "productivity",
+  "input": "downloads/lark/sheets/raw/ProductivityDataReportRaw.csv",
+  "output": "downloads/lark/sheets/transformed/ProductivityDataReport.csv"
+}
