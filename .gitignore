@@ -1,0 +1,31 @@
+# secrets
+.env
+*.pem
+*.key
+
+# runtime output
+downloads/
+logs/
+data/
+*.csv
+*.part
+
+# drivers / browser state
+Web Driver/
+chromedriver*
+browser_profile/
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# editors / os
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
