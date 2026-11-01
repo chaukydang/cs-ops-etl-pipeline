@@ -1,0 +1,1098 @@
+{
+  "metric_name": "fc_actual_details",
+  "enabled": true,
+  "endpoint": "https://aeolus-va.bytelemon.com/aeolus/vqs/openApi/v2/vizQuery/download",
+  "output": {
+    "directory": "downloads",
+    "filename_prefix": "fc_actual_details"
+  },
+  "dynamic_date": {
+    "enabled": true,
+    "field_id": "10000002248064",
+    "weeks_back": 5,
+    "include_current_week": true,
+    "week_start": "sunday"
+  },
+  "payload": {
+    "downloadConfig": {
+      "limit": 1000,
+      "type": "all",
+      "fileFormat": "csv",
+      "encoding": "UTF-8",
+      "disableScientificNotation": true,
+      "reportName": "fc_actual_details.csv",
+      "downloadOrderList": [],
+      "downloadType": "default",
+      "enableHiddenFields": true,
+      "keepDataFormat": false
+    },
+    "version": 4,
+    "metaData": {
+      "appId": 0
+    },
+    "reportId": 0,
+    "dataSourceId": 0,
+    "query": {
+      "dataSetId": 0,
+      "dataSetIdList": [
+        0
+      ],
+      "fabricBlendingModelInfo": {},
+      "transform": {
+        "type": "table"
+      },
+      "groupByIdList": [
+        "10000002248064",
+        "dynamic250822130910602"
+      ],
+      "selectIdList": [
+        "10000002520117",
+        "sum_10000002513013",
+        "10000003850728",
+        "10000002513350",
+        "10000002513497"
+      ],
+      "fillDateTimeList": [],
+      "followFilterRangeList": [],
+      "locations": {
+        "dimensions": [
+          "10000002248064",
+          "dynamic250822130910602"
+        ],
+        "rows": [],
+        "columns": [],
+        "tooltips": []
+      },
+      "dimMetList": [
+        {
+          "id": "dynamic250822130910602",
+          "originId": "10000002513010",
+          "dimMetId": 10000002513010,
+          "uniqueId": 250822130910602,
+          "name": "skill_group_name",
+          "expr": "skill_group_name",
+          "fullExpr": "skill_group_name",
+          "roleType": 0,
+          "scope": 0,
+          "dataType": "string",
+          "isRaw": false,
+          "mapKey": null,
+          "aggregation": {},
+          "sourceType": "raw",
+          "persisted": true,
+          "ownerEmailPrefix": "chongaih.hau",
+          "dataSetId": 0
+        },
+        {
+          "id": "sum_10000002513013",
+          "originId": "10000002513013",
+          "dimMetId": 10000002513013,
+          "uniqueId": 250822130028241,
+          "name": "Actual Traffic",
+          "expr": "actual_incall_volume",
+          "fullExpr": "actual_incall_volume",
+          "roleType": 1,
+          "scope": 0,
+          "dataType": "int",
+          "isRaw": false,
+          "mapKey": null,
+          "aggregation": {
+            "exprAggr": "sum("
+          },
+          "sourceType": "aggr",
+          "persisted": false,
+          "ownerEmailPrefix": "chongaih.hau",
+          "dataSetId": 0
+        }
+      ],
+      "whereList": [
+        {
+          "name": "partition",
+          "id": "10000009669083",
+          "preRelation": "and",
+          "uniqueId": 250804154052345,
+          "op": "lastSync",
+          "option": {
+            "isDefaultPartitionField": true,
+            "isReportFilter": false,
+            "isWhereInAggr": true
+          },
+          "val": [
+            1
+          ],
+          "valOption": {
+            "anchorOffset": 0,
+            "datetimeUnit": "day"
+          }
+        },
+        {
+          "name": "skill_group_channel_type",
+          "id": "10000002513021",
+          "preRelation": "and",
+          "uniqueId": 251208104334244,
+          "op": "in",
+          "option": {
+            "customList": [],
+            "desensitizationList": [],
+            "displayType": "multiDropDownList",
+            "filterPattern": "Accurate",
+            "isReportFilter": false,
+            "isWhereInAggr": true
+          },
+          "val": [
+            "after_sale",
+            "im",
+            "im_snapshot",
+            "ticket",
+            "ticket_snapshot"
+          ],
+          "valOption": {
+            "labelValueMap": {}
+          }
+        },
+        {
+          "name": "Business Date",
+          "id": "10000002248064",
+          "preRelation": "and",
+          "uniqueId": 261027170345629,
+          "op": "between",
+          "val": [
+            "2026-09-27 00:00:00",
+            "2026-10-27 23:59:59"
+          ],
+          "valOption": {
+            "endTime": {
+              "customWeekAnchor": 7,
+              "datetimeUnit": "customWeek",
+              "direction": "forward",
+              "type": "dynamic",
+              "val": 3
+            },
+            "startTime": {
+              "customWeekAnchor": 7,
+              "datetimeUnit": "customWeek",
+              "direction": "backward",
+              "type": "dynamic",
+              "val": 2
+            }
+          },
+          "option": {
+            "isReportFilter": false,
+            "isWhereInAggr": true,
+            "dateMode": "absolute"
+          }
+        }
+      ],
+      "periodCompare": [],
+      "calculation": {
+        "trendTable": {}
+      },
+      "limit": 1000,
+      "sort": {
+        "type": "sort",
+        "orderByList": []
+      },
+      "topN": null,
+      "paramList": [],
+      "cache": {
+        "cacheVersion": "V1",
+        "enable": true,
+        "expire": null
+      },
+      "enableNullJoin": false,
+      "hasDynamicField": true,
+      "realMetricTableRouteConfig": {
+        "isRealMetricQuery": false
+      },
+      "fabricModelInfo": {},
+      "extendQuery": []
+    },
+    "schema": {
+      "annotation": {
+        "hash": "d751713988987e9331980363e24189ce"
+      },
+      "cache": {
+        "cacheVersion": "V1",
+        "enable": true,
+        "expire": null
+      },
+      "colors": [],
+      "columns": [],
+      "details": [],
+      "dimensions": [
+        {
+          "aggrConf": {},
+          "dimMetId": 10000002248064,
+          "format": {},
+          "id": "10000002248064",
+          "index": 0,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "dimensions",
+          "originId": "10000002248064",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 250822130910187
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 261027170345632,
+          "fillDate": false,
+          "format": {},
+          "highlight": false,
+          "id": "dynamic251013141332054",
+          "index": 1,
+          "location": "dimensions",
+          "notJoinQuery": true,
+          "originId": "261027170345632",
+          "pillType": "dynamic",
+          "roleType": 0,
+          "sourceType": "placeholder",
+          "uniqueId": 251013141332054,
+          "unremovable": false
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 261027170345633,
+          "fillDate": false,
+          "format": {},
+          "highlight": false,
+          "id": "dynamic251013141332223",
+          "index": 2,
+          "location": "dimensions",
+          "notJoinQuery": true,
+          "originId": "261027170345633",
+          "pillType": "dynamic",
+          "roleType": 0,
+          "sourceType": "placeholder",
+          "uniqueId": 251013141332223,
+          "unremovable": false
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 10000002513010,
+          "fillDate": false,
+          "format": {
+            "contentType": "link"
+          },
+          "highlight": false,
+          "id": "dynamic250822130910602",
+          "index": 3,
+          "location": "dimensions",
+          "notJoinQuery": false,
+          "originId": "10000002513010",
+          "pillType": "dynamic",
+          "roleType": 0,
+          "uniqueId": 250822130910602,
+          "unremovable": false,
+          "isMetric": false
+        }
+      ],
+      "display": {
+        "conf": {
+          "alignDimension": "left",
+          "alignMeasure": "center",
+          "alternateRow": true,
+          "alternateRowColor": "#FBFBFC",
+          "autoWrap": false,
+          "bodyFontBold": false,
+          "bodyFontColor": "#141414",
+          "bodyFontItalic": false,
+          "bodyFontSize": 12,
+          "bodyFontUnderline": false,
+          "colPadding": null,
+          "colSpaceMode": "tight",
+          "columnWidth": [],
+          "compact": false,
+          "compactDirection": "horizontal",
+          "customFields": {
+            "enable": true
+          },
+          "display": "standard",
+          "fixedIndex": -1,
+          "gridLineColor": "#E1E4E8",
+          "gridLineFrame": true,
+          "gridLineFrameColor": null,
+          "gridLineFrameStyle": "solid",
+          "gridLineFrameWidth": 1,
+          "gridLineHorizontal": true,
+          "gridLineHorizontalColor": null,
+          "gridLineHorizontalStyle": "solid",
+          "gridLineHorizontalWidth": 1,
+          "gridLineVertical": true,
+          "gridLineVerticalColor": null,
+          "gridLineVerticalStyle": "solid",
+          "gridLineVerticalWidth": 1,
+          "headerBackground": true,
+          "headerColor": "#CEC3E6",
+          "headerFontBold": true,
+          "headerFontColor": "#1B1F23",
+          "headerFontItalic": false,
+          "headerFontSize": 12,
+          "headerFontUnderline": false,
+          "headerMenu": true,
+          "headerSubTitleFontBold": false,
+          "headerSubTitleFontColor": "rgba(20, 20, 20, 0.45)",
+          "headerSubTitleFontItalic": false,
+          "headerSubTitleFontSize": 12,
+          "headerSubTitleFontUnderline": false,
+          "hideHeader": false,
+          "hoverHighlight": "row",
+          "lineNumber": false,
+          "loadPartialData": true,
+          "measureFirst": false,
+          "pageSize": 20,
+          "pagination": false,
+          "rowPadding": null,
+          "rowSpaceMode": "tight",
+          "sortable": false,
+          "specialValue": {
+            "dimensions": "null",
+            "measures": "bracketTxt"
+          },
+          "tableStyle": "standard",
+          "transpose": false,
+          "version": 33
+        },
+        "enableAdvisor": true,
+        "queryType": "table",
+        "type": "table"
+      },
+      "drill": [],
+      "dynamicPillsMap": {
+        "dynamic250822130910602": {
+          "canEmpty": true,
+          "displayName": "skill_group_name",
+          "displayType": "singleDropDownList",
+          "pillList": [
+            {
+              "aggrConf": {},
+              "dimMetId": 10000002513010,
+              "format": {
+                "contentType": "link"
+              },
+              "highlight": false,
+              "id": "10000002513010",
+              "index": 0,
+              "isMetric": false,
+              "location": "dynamic_dim",
+              "notJoinQuery": false,
+              "originId": "10000002513010",
+              "roleType": 0,
+              "uniqueId": 250822130910615,
+              "unremovable": false
+            }
+          ],
+          "roleType": 0,
+          "selectedPillIdList": [
+            "10000002513010"
+          ]
+        },
+        "dynamic251013141332054": {
+          "canEmpty": true,
+          "displayName": "hour",
+          "displayType": "singleDropDownList",
+          "pillList": [
+            {
+              "aggrConf": {
+                "timeGranularityNum": 1,
+                "timeGranularityType": 18
+              },
+              "dimMetId": 10000005348634,
+              "format": {
+                "displayName": "hour",
+                "showFieldDescr": false,
+                "timeFormat": {
+                  "type": 1
+                }
+              },
+              "highlight": false,
+              "id": "time_18_1_10000005348634",
+              "index": 0,
+              "isMetric": false,
+              "location": "dynamic_dim",
+              "notJoinQuery": false,
+              "originId": "10000005348634",
+              "roleType": 0,
+              "uniqueId": 251013141332081,
+              "unremovable": false
+            }
+          ],
+          "roleType": 0,
+          "selectedPillIdList": []
+        },
+        "dynamic251013141332223": {
+          "canEmpty": true,
+          "displayName": "minute",
+          "displayType": "singleDropDownList",
+          "pillList": [
+            {
+              "aggrConf": {},
+              "dimMetId": 10000005763219,
+              "format": {
+                "contentType": "link",
+                "displayName": "minute",
+                "showFieldDescr": false
+              },
+              "highlight": false,
+              "id": "10000005763219",
+              "index": 0,
+              "isMetric": false,
+              "location": "dynamic_dim",
+              "notJoinQuery": false,
+              "originId": "10000005763219",
+              "roleType": 0,
+              "uniqueId": 251013141332249,
+              "unremovable": false
+            }
+          ],
+          "roleType": 0,
+          "selectedPillIdList": []
+        }
+      },
+      "extensions": {
+        "data": {},
+        "list": [],
+        "protocolVersion": 1
+      },
+      "measures": [
+        {
+          "aggrConf": {},
+          "dimMetId": 10000002520117,
+          "drillInfo": {},
+          "format": {
+            "dataTypeName": "float",
+            "displayName": "Forecast Traffic",
+            "numFormat": {
+              "auto": false,
+              "kSep": true,
+              "precision": 0,
+              "precisionType": "decimalDigits",
+              "prefix": "",
+              "suffix": "",
+              "type": "digit",
+              "unit": {
+                "ratio": 1,
+                "symbol": ""
+              }
+            }
+          },
+          "id": "10000002520117",
+          "index": 0,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "measures",
+          "originId": "10000002520117",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 250822130028283
+        },
+        {
+          "aggrConf": {
+            "exprAggr": "sum("
+          },
+          "dimMetId": 10000002513013,
+          "drillInfo": {},
+          "format": {
+            "dataTypeName": "int",
+            "displayName": "Actual Traffic",
+            "numFormat": {
+              "auto": false,
+              "kSep": true,
+              "precision": 0,
+              "precisionType": "decimalDigits",
+              "prefix": "",
+              "suffix": "",
+              "type": "digit",
+              "unit": {
+                "ratio": 1,
+                "symbol": ""
+              }
+            }
+          },
+          "id": "sum_10000002513013",
+          "index": 1,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "measures",
+          "originId": "10000002513013",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 250822130028241
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 10000003850728,
+          "drillInfo": {},
+          "format": {
+            "conditionalFormat": {
+              "data": [
+                {
+                  "color": "#959DA5",
+                  "pillId": "250821142533310",
+                  "rules": [
+                    {
+                      "operandType": "fixed",
+                      "ruleType": "empty",
+                      "value": 0
+                    }
+                  ],
+                  "tagIcon": "icon-bar",
+                  "tagIconPosition": "left",
+                  "textColor": "#959DA5"
+                },
+                {
+                  "color": "#eeb641",
+                  "pillId": "250821142533310",
+                  "rules": [
+                    {
+                      "operandType": "fixed",
+                      "ruleType": ">",
+                      "value": 0.1
+                    }
+                  ],
+                  "tagIcon": "icon-circle",
+                  "tagIconPosition": "left",
+                  "textColor": "#eeb641"
+                },
+                {
+                  "color": "#5cb855",
+                  "pillId": "250821142533310",
+                  "rules": [
+                    {
+                      "operandType": "fixed",
+                      "ruleType": ">",
+                      "value": -0.1
+                    },
+                    {
+                      "operandType": "fixed",
+                      "ruleType": "<",
+                      "value": 0.1
+                    }
+                  ],
+                  "tagIcon": "icon-circle",
+                  "tagIconPosition": "left",
+                  "textColor": "#5cb855"
+                },
+                {
+                  "color": "#f5222d",
+                  "pillId": "250821142533310",
+                  "rules": [
+                    {
+                      "operandType": "fixed",
+                      "ruleType": "<",
+                      "value": -0.1
+                    }
+                  ],
+                  "tagIcon": "icon-exclamation",
+                  "tagIconPosition": "left",
+                  "textColor": "#f5222d"
+                }
+              ],
+              "type": "tag"
+            },
+            "dataTypeName": "float",
+            "displayName": "Traffic Variance",
+            "numFormat": {
+              "auto": false,
+              "kSep": false,
+              "precision": 0,
+              "precisionType": "decimalDigits",
+              "prefix": "",
+              "suffix": "",
+              "type": "percent",
+              "unit": null
+            }
+          },
+          "id": "10000003850728",
+          "index": 2,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "measures",
+          "originId": "10000003850728",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 250821142533310
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 10000002513350,
+          "format": {
+            "dataTypeName": "float",
+            "displayName": "Forecast FTE",
+            "numFormat": {
+              "auto": false,
+              "kSep": true,
+              "precision": 1,
+              "precisionType": "decimalDigits",
+              "prefix": "",
+              "suffix": "",
+              "type": "digit",
+              "unit": {
+                "ratio": 1,
+                "symbol": ""
+              }
+            },
+            "showFieldDescr": false
+          },
+          "id": "10000002513350",
+          "index": 3,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "measures",
+          "originId": "10000002513350",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 260211141319568
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 10000002513497,
+          "format": {
+            "dataTypeName": "float",
+            "numFormat": {
+              "auto": false,
+              "kSep": true,
+              "precision": 0,
+              "precisionType": "decimalDigits",
+              "prefix": "",
+              "suffix": "",
+              "type": "digit",
+              "unit": {
+                "ratio": 1,
+                "symbol": ""
+              }
+            }
+          },
+          "id": "10000002513497",
+          "index": 4,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "measures",
+          "originId": "10000002513497",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 251016224947163
+        }
+      ],
+      "measuresGroups": [],
+      "pagination": null,
+      "parameters": [],
+      "periodCompare": [],
+      "realMetricTableRouteConfig": {
+        "isRealMetricQuery": false
+      },
+      "referenceLine": [],
+      "reportFilterConfig": {
+        "layoutSize": "Normal",
+        "structType": "LeftRight"
+      },
+      "rows": [],
+      "sizes": [],
+      "sort": {
+        "orderByList": [],
+        "orderByListState": [
+          {
+            "id": "10000002513010",
+            "order": "asc",
+            "uniqueId": 250822130910454
+          }
+        ],
+        "type": "sort"
+      },
+      "subMeasures": [],
+      "tableCalculation": {
+        "rules": []
+      },
+      "tooltips": [],
+      "whereList": [
+        {
+          "aggrConf": {},
+          "dataSetId": 0,
+          "dataTypeName": "date",
+          "dimMetId": 10000009669083,
+          "filter": {
+            "op": "lastSync",
+            "option": {
+              "isDefaultPartitionField": true,
+              "isReportFilter": false,
+              "isWhereInAggr": true
+            },
+            "val": [
+              1
+            ],
+            "valOption": {
+              "anchorOffset": 0,
+              "datetimeUnit": "day"
+            }
+          },
+          "format": {},
+          "highlight": false,
+          "id": "10000009669083",
+          "index": 0,
+          "location": "whereList",
+          "name": "partition",
+          "originId": "10000009669083",
+          "preRelation": "and",
+          "roleType": 0,
+          "showEditComponent": false,
+          "undraggable": false,
+          "uniqueId": 250804154052345,
+          "unremovable": true
+        },
+        {
+          "aggrConf": {},
+          "dataSetId": 0,
+          "dimMetId": 10000002513021,
+          "filter": {
+            "op": "in",
+            "option": {
+              "customList": [],
+              "desensitizationList": [],
+              "displayType": "multiDropDownList",
+              "filterPattern": "Accurate",
+              "isReportFilter": false,
+              "isWhereInAggr": true
+            },
+            "val": [
+              "after_sale",
+              "im",
+              "im_snapshot",
+              "ticket",
+              "ticket_snapshot"
+            ],
+            "valOption": {
+              "labelValueMap": {}
+            }
+          },
+          "format": {
+            "contentType": "link"
+          },
+          "id": "10000002513021",
+          "index": 1,
+          "isMetric": false,
+          "location": "whereList",
+          "name": "skill_group_channel_type",
+          "originId": "10000002513021",
+          "preRelation": "and",
+          "roleType": 0,
+          "showEditComponent": false,
+          "subFilterIds": [],
+          "uniqueId": 251208104334244
+        },
+        {
+          "aggrConf": {},
+          "dataSetId": 0,
+          "dimMetId": 10000002513010,
+          "filter": {
+            "op": "in",
+            "option": {
+              "customList": [],
+              "desensitizationList": [],
+              "displayType": "multiDropDownList",
+              "filterPattern": "Accurate",
+              "isReportFilter": false,
+              "isWhereInAggr": true
+            },
+            "val": [],
+            "valOption": {
+              "labelValueMap": {}
+            }
+          },
+          "format": {
+            "contentType": "link"
+          },
+          "id": "10000002513010",
+          "index": 2,
+          "isMetric": false,
+          "isRequired": false,
+          "location": "whereList",
+          "name": "skill_group_name",
+          "originId": "10000002513010",
+          "preRelation": "and",
+          "roleType": 0,
+          "showEditComponent": false,
+          "subFilterIds": [],
+          "uniqueId": 251208104334245
+        },
+        {
+          "uniqueId": 261027170345629,
+          "id": "10000002248064",
+          "location": "whereList",
+          "dimMetId": 10000002248064,
+          "originId": "10000002248064",
+          "roleType": 0,
+          "aggrConf": {},
+          "format": {},
+          "isMetric": false,
+          "preRelation": "and",
+          "filter": {
+            "op": "between",
+            "val": [
+              "2026-09-27 00:00:00",
+              "2026-10-27 23:59:59"
+            ],
+            "valOption": {
+              "endTime": {
+                "customWeekAnchor": 7,
+                "datetimeUnit": "customWeek",
+                "direction": "forward",
+                "type": "dynamic",
+                "val": 3
+              },
+              "startTime": {
+                "customWeekAnchor": 7,
+                "datetimeUnit": "customWeek",
+                "direction": "backward",
+                "type": "dynamic",
+                "val": 2
+              }
+            },
+            "option": {
+              "isReportFilter": false,
+              "isWhereInAggr": true,
+              "dateMode": "absolute"
+            }
+          },
+          "name": "Business Date",
+          "dataSetId": 0,
+          "subFilterIds": [],
+          "index": 3,
+          "showEditComponent": false
+        }
+      ],
+      "whiteList": [
+        10000002513010,
+        10000005348634,
+        10000005763219
+      ]
+    },
+    "display": {
+      "conf": {
+        "alignDimension": "left",
+        "alignMeasure": "center",
+        "alternateRow": true,
+        "alternateRowColor": "#FBFBFC",
+        "autoWrap": false,
+        "bodyFontBold": false,
+        "bodyFontColor": "#141414",
+        "bodyFontItalic": false,
+        "bodyFontSize": 12,
+        "bodyFontUnderline": false,
+        "colPadding": null,
+        "colSpaceMode": "tight",
+        "columnWidth": [],
+        "compact": false,
+        "compactDirection": "horizontal",
+        "customFields": {
+          "enable": true
+        },
+        "display": "standard",
+        "fixedIndex": -1,
+        "gridLineColor": "#E1E4E8",
+        "gridLineFrame": true,
+        "gridLineFrameColor": null,
+        "gridLineFrameStyle": "solid",
+        "gridLineFrameWidth": 1,
+        "gridLineHorizontal": true,
+        "gridLineHorizontalColor": null,
+        "gridLineHorizontalStyle": "solid",
+        "gridLineHorizontalWidth": 1,
+        "gridLineVertical": true,
+        "gridLineVerticalColor": null,
+        "gridLineVerticalStyle": "solid",
+        "gridLineVerticalWidth": 1,
+        "headerBackground": true,
+        "headerColor": "#CEC3E6",
+        "headerFontBold": true,
+        "headerFontColor": "#1B1F23",
+        "headerFontItalic": false,
+        "headerFontSize": 12,
+        "headerFontUnderline": false,
+        "headerMenu": true,
+        "headerSubTitleFontBold": false,
+        "headerSubTitleFontColor": "rgba(20, 20, 20, 0.45)",
+        "headerSubTitleFontItalic": false,
+        "headerSubTitleFontSize": 12,
+        "headerSubTitleFontUnderline": false,
+        "hideHeader": false,
+        "hoverHighlight": "row",
+        "lineNumber": false,
+        "loadPartialData": true,
+        "measureFirst": false,
+        "pageSize": 20,
+        "pagination": false,
+        "rowPadding": null,
+        "rowSpaceMode": "tight",
+        "sortable": false,
+        "specialValue": {
+          "dimensions": "null",
+          "measures": "bracketTxt"
+        },
+        "tableStyle": "standard",
+        "transpose": false,
+        "version": 33
+      },
+      "enableAdvisor": true,
+      "queryType": "table",
+      "type": "table",
+      "fieldsFormat": {
+        "10000002248064": {},
+        "dynamic251013141332054": {},
+        "dynamic251013141332223": {},
+        "dynamic250822130910602": {
+          "contentType": "link"
+        },
+        "10000002520117": {
+          "dataTypeName": "float",
+          "displayName": "Forecast Traffic",
+          "numFormat": {
+            "auto": false,
+            "kSep": true,
+            "precision": 0,
+            "precisionType": "decimalDigits",
+            "prefix": "",
+            "suffix": "",
+            "type": "digit",
+            "unit": {
+              "ratio": 1,
+              "symbol": ""
+            }
+          }
+        },
+        "sum_10000002513013": {
+          "dataTypeName": "int",
+          "displayName": "Actual Traffic",
+          "numFormat": {
+            "auto": false,
+            "kSep": true,
+            "precision": 0,
+            "precisionType": "decimalDigits",
+            "prefix": "",
+            "suffix": "",
+            "type": "digit",
+            "unit": {
+              "ratio": 1,
+              "symbol": ""
+            }
+          }
+        },
+        "10000003850728": {
+          "conditionalFormat": {
+            "data": [
+              {
+                "color": "#959DA5",
+                "pillId": "250821142533310",
+                "rules": [
+                  {
+                    "operandType": "fixed",
+                    "ruleType": "empty",
+                    "value": 0
+                  }
+                ],
+                "tagIcon": "icon-bar",
+                "tagIconPosition": "left",
+                "textColor": "#959DA5"
+              },
+              {
+                "color": "#eeb641",
+                "pillId": "250821142533310",
+                "rules": [
+                  {
+                    "operandType": "fixed",
+                    "ruleType": ">",
+                    "value": 0.1
+                  }
+                ],
+                "tagIcon": "icon-circle",
+                "tagIconPosition": "left",
+                "textColor": "#eeb641"
+              },
+              {
+                "color": "#5cb855",
+                "pillId": "250821142533310",
+                "rules": [
+                  {
+                    "operandType": "fixed",
+                    "ruleType": ">",
+                    "value": -0.1
+                  },
+                  {
+                    "operandType": "fixed",
+                    "ruleType": "<",
+                    "value": 0.1
+                  }
+                ],
+                "tagIcon": "icon-circle",
+                "tagIconPosition": "left",
+                "textColor": "#5cb855"
+              },
+              {
+                "color": "#f5222d",
+                "pillId": "250821142533310",
+                "rules": [
+                  {
+                    "operandType": "fixed",
+                    "ruleType": "<",
+                    "value": -0.1
+                  }
+                ],
+                "tagIcon": "icon-exclamation",
+                "tagIconPosition": "left",
+                "textColor": "#f5222d"
+              }
+            ],
+            "type": "tag"
+          },
+          "dataTypeName": "float",
+          "displayName": "Traffic Variance",
+          "numFormat": {
+            "auto": false,
+            "kSep": false,
+            "precision": 0,
+            "precisionType": "decimalDigits",
+            "prefix": "",
+            "suffix": "",
+            "type": "percent",
+            "unit": null
+          }
+        },
+        "10000002513350": {
+          "dataTypeName": "float",
+          "displayName": "Forecast FTE",
+          "numFormat": {
+            "auto": false,
+            "kSep": true,
+            "precision": 1,
+            "precisionType": "decimalDigits",
+            "prefix": "",
+            "suffix": "",
+            "type": "digit",
+            "unit": {
+              "ratio": 1,
+              "symbol": ""
+            }
+          },
+          "showFieldDescr": false
+        },
+        "10000002513497": {
+          "dataTypeName": "float",
+          "numFormat": {
+            "auto": false,
+            "kSep": true,
+            "precision": 0,
+            "precisionType": "decimalDigits",
+            "prefix": "",
+            "suffix": "",
+            "type": "digit",
+            "unit": {
+              "ratio": 1,
+              "symbol": ""
+            }
+          }
+        }
+      }
+    },
+    "dashboardId": 440864
+  }
+}

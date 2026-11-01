@@ -1,0 +1,1539 @@
+{
+  "metric_name": "ticket_details",
+  "enabled": true,
+  "endpoint": "https://aeolus-va.bytelemon.com/aeolus/vqs/openApi/v2/vizQuery/download",
+  "output": {
+    "directory": "downloads",
+    "filename_prefix": "ticket_details"
+  },
+  "dynamic_date": {
+    "enabled": true,
+    "field_id": "1700007389692",
+    "weeks_back": 5,
+    "include_current_week": true,
+    "week_start": "sunday"
+  },
+  "payload": {
+    "downloadConfig": {
+      "limit": 1000000,
+      "type": "all",
+      "fileFormat": "csv",
+      "encoding": "UTF-8",
+      "disableScientificNotation": true,
+      "reportName": "ticket_details.csv",
+      "downloadOrderList": [],
+      "downloadType": "default",
+      "enableHiddenFields": true,
+      "keepDataFormat": false
+    },
+    "version": 4,
+    "metaData": {
+      "appId": 0
+    },
+    "reportId": 0,
+    "dataSourceId": 0,
+    "query": {
+      "dataSetId": 0,
+      "dataSetIdList": [
+        0
+      ],
+      "fabricBlendingModelInfo": {},
+      "transform": {
+        "type": "table"
+      },
+      "groupByIdList": [
+        "1700007389692",
+        "1700019726640",
+        "1700016580342",
+        "1700007389694",
+        "1700019151426",
+        "1700017219338",
+        "1700015517158",
+        "1700015517156",
+        "1700019445048",
+        "1700007389703",
+        "1700015524571",
+        "1700015517162",
+        "1700023140548",
+        "1700023140512",
+        "1700018411079",
+        "1700015517170",
+        "1700032197821",
+        "1700018929782",
+        "1700022444606",
+        "1700035838645",
+        "1700027907185",
+        "1700032801459",
+        "1700032151090"
+      ],
+      "selectIdList": [
+        "1700007389913",
+        "sum_1700016332581",
+        "1700020104539",
+        "1700020218118",
+        "1700007390071",
+        "sum_1700035360433",
+        "1700022235841",
+        "1700017930910"
+      ],
+      "fillDateTimeList": [],
+      "followFilterRangeList": [],
+      "locations": {
+        "dimensions": [
+          "1700007389692",
+          "1700019726640",
+          "1700016580342",
+          "1700007389694",
+          "1700019151426",
+          "1700017219338",
+          "1700015517158",
+          "1700015517156",
+          "1700019445048",
+          "1700007389703",
+          "1700015524571",
+          "1700015517162",
+          "1700023140548",
+          "1700023140512",
+          "1700018411079",
+          "1700015517170",
+          "1700032197821",
+          "1700018929782",
+          "1700022444606",
+          "1700035838645",
+          "1700027907185",
+          "1700032801459",
+          "1700032151090"
+        ],
+        "rows": [],
+        "columns": [],
+        "tooltips": []
+      },
+      "dimMetList": [
+        {
+          "id": "sum_1700016332581",
+          "originId": "1700016332581",
+          "dimMetId": 1700016332581,
+          "uniqueId": 231030073538118,
+          "name": "overall_survey_score",
+          "expr": "`overall_survey_score`",
+          "fullExpr": "`overall_survey_score`",
+          "roleType": 1,
+          "scope": 0,
+          "dataType": "int",
+          "isRaw": false,
+          "mapKey": null,
+          "aggregation": {
+            "exprAggr": "sum("
+          },
+          "sourceType": "aggr",
+          "persisted": false,
+          "ownerEmailPrefix": "yueqing",
+          "dataSetId": 0
+        },
+        {
+          "id": "sum_1700035360433",
+          "originId": "1700035360433",
+          "dimMetId": 1700035360433,
+          "uniqueId": 241002124926533,
+          "name": "Contact Cnt",
+          "expr": "`contact_or_finish_cnt`",
+          "fullExpr": "`contact_or_finish_cnt`",
+          "roleType": 1,
+          "scope": 0,
+          "dataType": "int",
+          "isRaw": false,
+          "mapKey": null,
+          "aggregation": {
+            "exprAggr": "sum("
+          },
+          "sourceType": "aggr",
+          "persisted": false,
+          "ownerEmailPrefix": "yueqing",
+          "dataSetId": 0
+        }
+      ],
+      "whereList": [
+        {
+          "name": "p_date",
+          "id": "1700007389690",
+          "preRelation": "and",
+          "uniqueId": 230911115152005,
+          "op": "lastSync",
+          "option": {
+            "isDefaultPartitionField": true,
+            "isReportFilter": false,
+            "isWhereInAggr": true
+          },
+          "val": [
+            1
+          ],
+          "valOption": {
+            "anchorOffset": 0,
+            "datetimeUnit": "day"
+          }
+        },
+        {
+          "name": "create_date｜工单创建日期",
+          "id": "1700007389692",
+          "preRelation": "and",
+          "uniqueId": 230911115152101,
+          "op": "between",
+          "val": [
+            "2026-09-27 00:00:00",
+            "2026-10-27 23:59:59"
+          ],
+          "valOption": {
+            "endTime": {
+              "datetimeUnit": "day",
+              "direction": "backward",
+              "type": "dynamic",
+              "val": 3
+            },
+            "startTime": {
+              "datetimeUnit": "day",
+              "direction": "backward",
+              "type": "dynamic",
+              "val": 3
+            }
+          },
+          "option": {
+            "isReportFilter": true,
+            "isWhereInAggr": true,
+            "dateMode": "absolute"
+          }
+        },
+        {
+          "name": "user_type_name_en ｜ 用户类型",
+          "id": "1700015517158",
+          "preRelation": "and",
+          "uniqueId": 231030215838427,
+          "op": "in",
+          "val": [
+            "Buyer",
+            "Creator",
+            "Seller",
+            "User"
+          ],
+          "valOption": {},
+          "option": {
+            "isReportFilter": true,
+            "isWhereInAggr": true,
+            "desensitizationList": [],
+            "customList": [],
+            "displayType": "multiDropDownList",
+            "filterPattern": "Accurate"
+          }
+        },
+        {
+          "name": "ticket_type_new_name_en ｜ 工单类型",
+          "id": "1700015517156",
+          "preRelation": "and",
+          "uniqueId": 231114114903033,
+          "op": "not in",
+          "val": [
+            "ALERT",
+            "AOP-Aftersale",
+            "AOP-Aggregation Call",
+            "AOP-COD",
+            "Approval",
+            "QUALITY_ASSURANCE",
+            "Report",
+            "Review Task",
+            "SLICE",
+            "Service",
+            "SubTicket"
+          ],
+          "valOption": {},
+          "option": {
+            "isReportFilter": true,
+            "isWhereInAggr": true,
+            "desensitizationList": [],
+            "customList": [],
+            "displayType": "multiDropDownList",
+            "filterPattern": "Accurate"
+          }
+        },
+        {
+          "name": "is_auto_processed ｜ 是否自动化处理解决",
+          "id": "1700016185871",
+          "preRelation": "and",
+          "uniqueId": 261027160252043,
+          "op": "in",
+          "val": [
+            "0"
+          ],
+          "valOption": {
+            "labelValueMap": {}
+          },
+          "option": {
+            "isReportFilter": false,
+            "isWhereInAggr": true,
+            "desensitizationList": [],
+            "customList": [],
+            "displayType": "multiDropDownList",
+            "filterPattern": "Accurate"
+          }
+        }
+      ],
+      "periodCompare": [],
+      "calculation": {
+        "trendTable": {}
+      },
+      "limit": 1000000,
+      "sort": {
+        "type": "sort",
+        "orderByList": []
+      },
+      "topN": null,
+      "paramList": [],
+      "cache": {
+        "enable": true,
+        "expire": null
+      },
+      "enableNullJoin": false,
+      "hasDynamicField": false,
+      "realMetricTableRouteConfig": {
+        "isRealMetricQuery": false
+      },
+      "fabricModelInfo": {},
+      "extendQuery": []
+    },
+    "schema": {
+      "annotation": {
+        "hash": "d751713988987e9331980363e24189ce"
+      },
+      "cache": {
+        "enable": true,
+        "expire": null
+      },
+      "colors": [],
+      "columns": [],
+      "details": [],
+      "dimensions": [
+        {
+          "aggrConf": {},
+          "dimMetId": 1700007389692,
+          "format": {
+            "displayName": "Create_Date",
+            "showFieldDescr": false
+          },
+          "id": "1700007389692",
+          "index": 0,
+          "isGeoField": false,
+          "location": "dimensions",
+          "originId": "1700007389692",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 231030073537522
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700019726640,
+          "format": {
+            "displayName": "Close_Date",
+            "showFieldDescr": false
+          },
+          "id": "1700019726640",
+          "index": 1,
+          "isGeoField": false,
+          "location": "dimensions",
+          "originId": "1700019726640",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 231030073537629
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700016580342,
+          "format": {
+            "displayName": "Overall Submit Date",
+            "showFieldDescr": false
+          },
+          "id": "1700016580342",
+          "index": 2,
+          "isGeoField": false,
+          "location": "dimensions",
+          "originId": "1700016580342",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 231030073537644
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700007389694,
+          "format": {},
+          "id": "1700007389694",
+          "index": 3,
+          "isGeoField": false,
+          "location": "dimensions",
+          "originId": "1700007389694",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 231030073537713
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700019151426,
+          "format": {
+            "contentType": "link"
+          },
+          "id": "1700019151426",
+          "index": 4,
+          "isGeoField": false,
+          "location": "dimensions",
+          "originId": "1700019151426",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 230917204835464
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700017219338,
+          "format": {
+            "contentType": "auto"
+          },
+          "id": "1700017219338",
+          "index": 5,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "dimensions",
+          "originId": "1700017219338",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 260316193119289
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700015517158,
+          "format": {
+            "contentType": "link"
+          },
+          "id": "1700015517158",
+          "index": 6,
+          "isGeoField": false,
+          "location": "dimensions",
+          "originId": "1700015517158",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 230917204835539
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700015517156,
+          "format": {
+            "contentType": "link"
+          },
+          "id": "1700015517156",
+          "index": 7,
+          "isGeoField": false,
+          "location": "dimensions",
+          "originId": "1700015517156",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 231030073538575
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700019445048,
+          "format": {
+            "contentType": "link"
+          },
+          "id": "1700019445048",
+          "index": 8,
+          "isGeoField": false,
+          "location": "dimensions",
+          "originId": "1700019445048",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 240327215341026
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700007389703,
+          "format": {
+            "contentType": "link",
+            "displayName": "level3_label_name",
+            "showFieldDescr": false
+          },
+          "id": "1700007389703",
+          "index": 9,
+          "isGeoField": false,
+          "location": "dimensions",
+          "originId": "1700007389703",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 230917204835604
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700015524571,
+          "format": {
+            "contentType": "link"
+          },
+          "id": "1700015524571",
+          "index": 10,
+          "isGeoField": false,
+          "location": "dimensions",
+          "originId": "1700015524571",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 231130170400023
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700015517162,
+          "format": {
+            "contentType": "auto"
+          },
+          "id": "1700015517162",
+          "index": 11,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "dimensions",
+          "originId": "1700015517162",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 260317144659051
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700023140548,
+          "format": {
+            "contentType": "auto"
+          },
+          "id": "1700023140548",
+          "index": 12,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "dimensions",
+          "originId": "1700023140548",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 260317144659090
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700023140512,
+          "format": {
+            "contentType": "auto"
+          },
+          "id": "1700023140512",
+          "index": 13,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "dimensions",
+          "originId": "1700023140512",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 260318154420130
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700018411079,
+          "format": {
+            "contentType": "auto"
+          },
+          "id": "1700018411079",
+          "index": 14,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "dimensions",
+          "originId": "1700018411079",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 260318154420177
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700015517170,
+          "format": {
+            "contentType": "auto"
+          },
+          "id": "1700015517170",
+          "index": 15,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "dimensions",
+          "originId": "1700015517170",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 260331144919091
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700032197821,
+          "format": {},
+          "id": "1700032197821",
+          "index": 16,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "dimensions",
+          "originId": "1700032197821",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 260331144919124
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700018929782,
+          "format": {
+            "contentType": "auto"
+          },
+          "id": "1700018929782",
+          "index": 17,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "dimensions",
+          "originId": "1700018929782",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 260331144919157
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700022444606,
+          "format": {
+            "contentType": "auto"
+          },
+          "id": "1700022444606",
+          "index": 18,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "dimensions",
+          "originId": "1700022444606",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 260331144919168
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700035838645,
+          "format": {
+            "contentType": "auto"
+          },
+          "id": "1700035838645",
+          "index": 19,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "dimensions",
+          "originId": "1700035838645",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 260331144919181
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700027907185,
+          "format": {},
+          "id": "1700027907185",
+          "index": 20,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "dimensions",
+          "originId": "1700027907185",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 260331144919204
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700032801459,
+          "format": {
+            "contentType": "auto"
+          },
+          "id": "1700032801459",
+          "index": 21,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "dimensions",
+          "originId": "1700032801459",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 260331144919213
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700032151090,
+          "format": {},
+          "id": "1700032151090",
+          "index": 22,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "dimensions",
+          "originId": "1700032151090",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 260331144919240
+        }
+      ],
+      "display": {
+        "conf": {
+          "alignDimension": "left",
+          "alignMeasure": "right",
+          "alternateRow": true,
+          "alternateRowColor": "#FBFBFC",
+          "autoWrap": false,
+          "bodyFontBold": false,
+          "bodyFontColor": "#141414",
+          "bodyFontItalic": false,
+          "bodyFontSize": 12,
+          "bodyFontUnderline": false,
+          "colPadding": null,
+          "colSpaceMode": "tight",
+          "columnWidth": [],
+          "compact": false,
+          "compactDirection": "horizontal",
+          "customFields": {
+            "enable": true
+          },
+          "display": "standard",
+          "fixedIndex": -1,
+          "gridLineColor": "#E1E4E8",
+          "gridLineFrame": true,
+          "gridLineFrameColor": null,
+          "gridLineFrameStyle": "solid",
+          "gridLineFrameWidth": 1,
+          "gridLineHorizontal": true,
+          "gridLineHorizontalColor": null,
+          "gridLineHorizontalStyle": "solid",
+          "gridLineHorizontalWidth": 1,
+          "gridLineVertical": true,
+          "gridLineVerticalColor": null,
+          "gridLineVerticalStyle": "solid",
+          "gridLineVerticalWidth": 1,
+          "headerBackground": true,
+          "headerColor": "#b9ceff",
+          "headerFontBold": true,
+          "headerFontColor": "#1B1F23",
+          "headerFontItalic": false,
+          "headerFontSize": 12,
+          "headerFontUnderline": false,
+          "headerMenu": true,
+          "headerSubTitleFontBold": false,
+          "headerSubTitleFontColor": "rgba(20, 20, 20, 0.45)",
+          "headerSubTitleFontItalic": false,
+          "headerSubTitleFontSize": 12,
+          "headerSubTitleFontUnderline": false,
+          "hideHeader": false,
+          "hoverHighlight": "row",
+          "lineNumber": true,
+          "loadPartialData": true,
+          "measureFirst": false,
+          "pageSize": 100,
+          "pagination": false,
+          "rowPadding": null,
+          "rowSpaceMode": "loose",
+          "sortable": false,
+          "specialValue": {
+            "dimensions": "null",
+            "measures": "bracketTxt"
+          },
+          "tableStyle": "standard",
+          "transpose": false,
+          "version": 33
+        },
+        "enableAdvisor": true,
+        "queryType": "table",
+        "type": "table"
+      },
+      "drill": [],
+      "dynamicPillsMap": {},
+      "enableNullJoin": false,
+      "extensions": {
+        "data": {},
+        "list": [],
+        "protocolVersion": 1
+      },
+      "measures": [
+        {
+          "aggrConf": {},
+          "dimMetId": 1700007389913,
+          "format": {
+            "dataTypeName": "int",
+            "displayName": "Create",
+            "numFormat": {
+              "auto": true,
+              "kSep": true,
+              "precision": 4,
+              "precisionType": "significantDecimal",
+              "type": "digit",
+              "unit": null
+            },
+            "showFieldDescr": false
+          },
+          "id": "1700007389913",
+          "index": 0,
+          "isGeoField": false,
+          "location": "measures",
+          "originId": "1700007389913",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 231030073538416
+        },
+        {
+          "aggrConf": {
+            "exprAggr": "sum("
+          },
+          "dimMetId": 1700016332581,
+          "format": {
+            "dataTypeName": "int",
+            "displayName": "overall_survey_score",
+            "numFormat": {
+              "auto": true,
+              "kSep": true,
+              "precision": 4,
+              "precisionType": "significantDecimal",
+              "type": "digit",
+              "unit": null
+            },
+            "showFieldDescr": false
+          },
+          "id": "sum_1700016332581",
+          "index": 1,
+          "isGeoField": false,
+          "location": "measures",
+          "originId": "1700016332581",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 231030073538118
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700020104539,
+          "format": {
+            "dataTypeName": "float",
+            "displayName": "total_first_response_time (hrs)",
+            "numFormat": {
+              "auto": true,
+              "kSep": true,
+              "precision": 4,
+              "precisionType": "significantDecimal",
+              "type": "digit",
+              "unit": null
+            },
+            "showFieldDescr": false
+          },
+          "id": "1700020104539",
+          "index": 2,
+          "isGeoField": false,
+          "location": "measures",
+          "originId": "1700020104539",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 231030073538341
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700020218118,
+          "format": {
+            "dataTypeName": "float",
+            "displayName": "First_contact_resolution",
+            "numFormat": {
+              "auto": true,
+              "kSep": true,
+              "precision": 4,
+              "precisionType": "significantDecimal",
+              "type": "digit",
+              "unit": null
+            },
+            "showFieldDescr": false
+          },
+          "id": "1700020218118",
+          "index": 3,
+          "isGeoField": false,
+          "location": "measures",
+          "originId": "1700020218118",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 231030073538425
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700007390071,
+          "format": {
+            "dataTypeName": "float",
+            "displayName": "Resolution Hours",
+            "numFormat": {
+              "auto": true,
+              "kSep": true,
+              "precision": 4,
+              "precisionType": "significantDecimal",
+              "type": "digit",
+              "unit": null
+            },
+            "showFieldDescr": false
+          },
+          "id": "1700007390071",
+          "index": 4,
+          "isGeoField": false,
+          "location": "measures",
+          "originId": "1700007390071",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 231030073538759
+        },
+        {
+          "aggrConf": {
+            "exprAggr": "sum("
+          },
+          "dimMetId": 1700035360433,
+          "format": {
+            "dataTypeName": "int",
+            "displayName": "Contact Cnt",
+            "numFormat": {
+              "auto": true,
+              "kSep": true,
+              "precision": 4,
+              "precisionType": "significantDecimal",
+              "type": "digit",
+              "unit": null
+            },
+            "showFieldDescr": false
+          },
+          "id": "sum_1700035360433",
+          "index": 5,
+          "isGeoField": false,
+          "location": "measures",
+          "originId": "1700035360433",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 241002124926533
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700022235841,
+          "format": {
+            "dataTypeName": "int",
+            "numFormat": {
+              "auto": true,
+              "kSep": true,
+              "precision": 4,
+              "precisionType": "significantDecimal",
+              "type": "digit",
+              "unit": null
+            }
+          },
+          "id": "1700022235841",
+          "index": 6,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "measures",
+          "originId": "1700022235841",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 260331144919253
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 1700017930910,
+          "format": {
+            "dataTypeName": "float",
+            "numFormat": {
+              "auto": true,
+              "kSep": true,
+              "precision": 4,
+              "precisionType": "significantDecimal",
+              "type": "digit",
+              "unit": null
+            }
+          },
+          "id": "1700017930910",
+          "index": 7,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "measures",
+          "originId": "1700017930910",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 260331144919266
+        }
+      ],
+      "measuresGroups": [],
+      "pagination": {
+        "frontOnlyOffset": 0,
+        "size": 1000
+      },
+      "parameters": [],
+      "periodCompare": [],
+      "realMetricTableRouteConfig": {
+        "isRealMetricQuery": false
+      },
+      "referenceLine": [],
+      "reportFilterConfig": {
+        "layoutSize": "Normal",
+        "structType": "LeftRight"
+      },
+      "rows": [],
+      "sizes": [],
+      "sort": {
+        "orderByList": [],
+        "orderByListState": [],
+        "type": "sort"
+      },
+      "subMeasures": [],
+      "tableCalculation": {
+        "hideAllEmptyRowsOrCols": false,
+        "rules": []
+      },
+      "tableCalculations": [],
+      "tooltips": [],
+      "whereList": [
+        {
+          "aggrConf": {},
+          "dataSetId": 0,
+          "dataTypeName": "date",
+          "dimMetId": 1700007389690,
+          "filter": {
+            "op": "lastSync",
+            "option": {
+              "isDefaultPartitionField": true,
+              "isReportFilter": false,
+              "isWhereInAggr": true
+            },
+            "val": [
+              1
+            ],
+            "valOption": {
+              "anchorOffset": 0,
+              "datetimeUnit": "day"
+            }
+          },
+          "format": {},
+          "highlight": false,
+          "id": "1700007389690",
+          "index": 0,
+          "location": "whereList",
+          "name": "p_date",
+          "originId": "1700007389690",
+          "preRelation": "and",
+          "roleType": 0,
+          "showEditComponent": false,
+          "undraggable": false,
+          "uniqueId": 230911115152005,
+          "unremovable": true
+        },
+        {
+          "uniqueId": 230911115152101,
+          "id": "1700007389692",
+          "location": "whereList",
+          "dimMetId": 1700007389692,
+          "originId": "1700007389692",
+          "roleType": 0,
+          "aggrConf": {},
+          "format": {
+            "displayName": "create_date"
+          },
+          "isMetric": false,
+          "name": "create_date｜工单创建日期",
+          "preRelation": "and",
+          "filter": {
+            "op": "between",
+            "val": [
+              "2026-09-27 00:00:00",
+              "2026-10-27 23:59:59"
+            ],
+            "valOption": {
+              "endTime": {
+                "datetimeUnit": "day",
+                "direction": "backward",
+                "type": "dynamic",
+                "val": 3
+              },
+              "startTime": {
+                "datetimeUnit": "day",
+                "direction": "backward",
+                "type": "dynamic",
+                "val": 3
+              }
+            },
+            "option": {
+              "isReportFilter": true,
+              "isWhereInAggr": true,
+              "dateMode": "absolute"
+            }
+          },
+          "dataSetId": 0,
+          "index": 1,
+          "showEditComponent": false
+        },
+        {
+          "uniqueId": 240229114659013,
+          "id": "1700019726640",
+          "location": "whereList",
+          "dimMetId": 1700019726640,
+          "originId": "1700019726640",
+          "roleType": 0,
+          "aggrConf": {},
+          "format": {
+            "displayName": "Close_Date"
+          },
+          "isMetric": false,
+          "name": "ticket close date ｜ 工单关闭日期",
+          "preRelation": "and",
+          "filter": {
+            "op": "",
+            "val": [],
+            "valOption": {},
+            "option": {
+              "isReportFilter": true,
+              "isWhereInAggr": true
+            }
+          },
+          "dataSetId": 0,
+          "index": 2,
+          "showEditComponent": false
+        },
+        {
+          "isRequired": false,
+          "uniqueId": 231030215838427,
+          "id": "1700015517158",
+          "location": "whereList",
+          "dimMetId": 1700015517158,
+          "originId": "1700015517158",
+          "roleType": 0,
+          "aggrConf": {},
+          "format": {
+            "contentType": "link",
+            "displayName": "User_Type"
+          },
+          "isMetric": false,
+          "name": "user_type_name_en ｜ 用户类型",
+          "preRelation": "and",
+          "filter": {
+            "op": "in",
+            "val": [
+              "Buyer",
+              "Creator",
+              "Seller",
+              "User"
+            ],
+            "valOption": {},
+            "option": {
+              "isReportFilter": true,
+              "isWhereInAggr": true,
+              "desensitizationList": [],
+              "customList": [],
+              "displayType": "multiDropDownList",
+              "filterPattern": "Accurate"
+            }
+          },
+          "dataSetId": 0,
+          "index": 3,
+          "showEditComponent": false
+        },
+        {
+          "isRequired": false,
+          "uniqueId": 231114114903033,
+          "id": "1700015517156",
+          "location": "whereList",
+          "dimMetId": 1700015517156,
+          "originId": "1700015517156",
+          "roleType": 0,
+          "aggrConf": {},
+          "format": {
+            "contentType": "link",
+            "displayName": "ticket_type_new_name_en"
+          },
+          "isMetric": false,
+          "name": "ticket_type_new_name_en ｜ 工单类型",
+          "preRelation": "and",
+          "filter": {
+            "op": "not in",
+            "val": [
+              "ALERT",
+              "AOP-Aftersale",
+              "AOP-Aggregation Call",
+              "AOP-COD",
+              "Approval",
+              "QUALITY_ASSURANCE",
+              "Report",
+              "Review Task",
+              "SLICE",
+              "Service",
+              "SubTicket"
+            ],
+            "valOption": {},
+            "option": {
+              "isReportFilter": true,
+              "isWhereInAggr": true,
+              "desensitizationList": [],
+              "customList": [],
+              "displayType": "multiDropDownList",
+              "filterPattern": "Accurate"
+            }
+          },
+          "dataSetId": 0,
+          "index": 4,
+          "showEditComponent": false
+        },
+        {
+          "isRequired": false,
+          "uniqueId": 231130170400026,
+          "id": "1700015524571",
+          "location": "whereList",
+          "dimMetId": 1700015524571,
+          "originId": "1700015524571",
+          "roleType": 0,
+          "aggrConf": {},
+          "format": {
+            "contentType": "link",
+            "displayName": "country_code"
+          },
+          "isMetric": false,
+          "name": "Country｜国家",
+          "preRelation": "and",
+          "filter": {
+            "op": "in",
+            "val": [],
+            "valOption": {},
+            "option": {
+              "isReportFilter": true,
+              "isWhereInAggr": true,
+              "displayType": "multiDropDownList",
+              "filterPattern": "Accurate"
+            }
+          },
+          "dataSetId": 0,
+          "index": 5,
+          "showEditComponent": false
+        },
+        {
+          "isRequired": false,
+          "uniqueId": 260129110521158,
+          "id": "10000013840287",
+          "location": "whereList",
+          "dimMetId": 10000013840287,
+          "originId": "10000013840287",
+          "roleType": 0,
+          "aggrConf": {},
+          "format": {
+            "contentType": "link",
+            "displayName": "IM_Chat_End_Type_En"
+          },
+          "isMetric": false,
+          "name": "IM_Chat_End_Type_En",
+          "preRelation": "and",
+          "filter": {
+            "op": "in",
+            "val": [],
+            "valOption": {},
+            "option": {
+              "isReportFilter": true,
+              "isWhereInAggr": true,
+              "displayType": "multiDropDownList",
+              "filterPattern": "Accurate"
+            }
+          },
+          "dataSetId": 0,
+          "index": 6,
+          "showEditComponent": false
+        },
+        {
+          "isRequired": false,
+          "uniqueId": 241202171723027,
+          "id": "1700017219338",
+          "location": "whereList",
+          "dimMetId": 1700017219338,
+          "originId": "1700017219338",
+          "roleType": 0,
+          "aggrConf": {},
+          "format": {
+            "contentType": "link",
+            "displayName": "final_dealer_email"
+          },
+          "isMetric": false,
+          "name": "final_dealer_email",
+          "preRelation": "and",
+          "filter": {
+            "op": "in",
+            "val": [],
+            "valOption": {},
+            "option": {
+              "isReportFilter": true,
+              "isWhereInAggr": true,
+              "displayType": "multiDropDownList",
+              "filterPattern": "Accurate"
+            }
+          },
+          "dataSetId": 0,
+          "index": 7,
+          "showEditComponent": false
+        },
+        {
+          "uniqueId": 261027160252043,
+          "id": "1700016185871",
+          "location": "whereList",
+          "dimMetId": 1700016185871,
+          "originId": "1700016185871",
+          "roleType": 0,
+          "aggrConf": {},
+          "format": {},
+          "isMetric": false,
+          "preRelation": "and",
+          "filter": {
+            "op": "in",
+            "val": [
+              "0"
+            ],
+            "valOption": {
+              "labelValueMap": {}
+            },
+            "option": {
+              "isReportFilter": false,
+              "isWhereInAggr": true,
+              "desensitizationList": [],
+              "customList": [],
+              "displayType": "multiDropDownList",
+              "filterPattern": "Accurate"
+            }
+          },
+          "name": "is_auto_processed ｜ 是否自动化处理解决",
+          "dataSetId": 0,
+          "subFilterIds": [],
+          "index": 8,
+          "showEditComponent": false
+        }
+      ],
+      "whiteList": []
+    },
+    "display": {
+      "conf": {
+        "alignDimension": "left",
+        "alignMeasure": "right",
+        "alternateRow": true,
+        "alternateRowColor": "#FBFBFC",
+        "autoWrap": false,
+        "bodyFontBold": false,
+        "bodyFontColor": "#141414",
+        "bodyFontItalic": false,
+        "bodyFontSize": 12,
+        "bodyFontUnderline": false,
+        "colPadding": null,
+        "colSpaceMode": "tight",
+        "columnWidth": [],
+        "compact": false,
+        "compactDirection": "horizontal",
+        "customFields": {
+          "enable": true
+        },
+        "display": "standard",
+        "fixedIndex": -1,
+        "gridLineColor": "#E1E4E8",
+        "gridLineFrame": true,
+        "gridLineFrameColor": null,
+        "gridLineFrameStyle": "solid",
+        "gridLineFrameWidth": 1,
+        "gridLineHorizontal": true,
+        "gridLineHorizontalColor": null,
+        "gridLineHorizontalStyle": "solid",
+        "gridLineHorizontalWidth": 1,
+        "gridLineVertical": true,
+        "gridLineVerticalColor": null,
+        "gridLineVerticalStyle": "solid",
+        "gridLineVerticalWidth": 1,
+        "headerBackground": true,
+        "headerColor": "#b9ceff",
+        "headerFontBold": true,
+        "headerFontColor": "#1B1F23",
+        "headerFontItalic": false,
+        "headerFontSize": 12,
+        "headerFontUnderline": false,
+        "headerMenu": true,
+        "headerSubTitleFontBold": false,
+        "headerSubTitleFontColor": "rgba(20, 20, 20, 0.45)",
+        "headerSubTitleFontItalic": false,
+        "headerSubTitleFontSize": 12,
+        "headerSubTitleFontUnderline": false,
+        "hideHeader": false,
+        "hoverHighlight": "row",
+        "lineNumber": true,
+        "loadPartialData": true,
+        "measureFirst": false,
+        "pageSize": 100,
+        "pagination": false,
+        "rowPadding": null,
+        "rowSpaceMode": "loose",
+        "sortable": false,
+        "specialValue": {
+          "dimensions": "null",
+          "measures": "bracketTxt"
+        },
+        "tableStyle": "standard",
+        "transpose": false,
+        "version": 33
+      },
+      "enableAdvisor": true,
+      "queryType": "table",
+      "type": "table",
+      "fieldsFormat": {
+        "1700007389692": {
+          "displayName": "Create_Date",
+          "showFieldDescr": false
+        },
+        "1700019726640": {
+          "displayName": "Close_Date",
+          "showFieldDescr": false
+        },
+        "1700016580342": {
+          "displayName": "Overall Submit Date",
+          "showFieldDescr": false
+        },
+        "1700007389694": {},
+        "1700019151426": {
+          "contentType": "link"
+        },
+        "1700017219338": {
+          "contentType": "auto"
+        },
+        "1700015517158": {
+          "contentType": "link"
+        },
+        "1700015517156": {
+          "contentType": "link"
+        },
+        "1700019445048": {
+          "contentType": "link"
+        },
+        "1700007389703": {
+          "contentType": "link",
+          "displayName": "level3_label_name",
+          "showFieldDescr": false
+        },
+        "1700015524571": {
+          "contentType": "link"
+        },
+        "1700015517162": {
+          "contentType": "auto"
+        },
+        "1700023140548": {
+          "contentType": "auto"
+        },
+        "1700023140512": {
+          "contentType": "auto"
+        },
+        "1700018411079": {
+          "contentType": "auto"
+        },
+        "1700015517170": {
+          "contentType": "auto"
+        },
+        "1700032197821": {},
+        "1700018929782": {
+          "contentType": "auto"
+        },
+        "1700022444606": {
+          "contentType": "auto"
+        },
+        "1700035838645": {
+          "contentType": "auto"
+        },
+        "1700027907185": {},
+        "1700032801459": {
+          "contentType": "auto"
+        },
+        "1700032151090": {},
+        "1700007389913": {
+          "dataTypeName": "int",
+          "displayName": "Create",
+          "numFormat": {
+            "auto": true,
+            "kSep": true,
+            "precision": 4,
+            "precisionType": "significantDecimal",
+            "type": "digit",
+            "unit": null
+          },
+          "showFieldDescr": false
+        },
+        "sum_1700016332581": {
+          "dataTypeName": "int",
+          "displayName": "overall_survey_score",
+          "numFormat": {
+            "auto": true,
+            "kSep": true,
+            "precision": 4,
+            "precisionType": "significantDecimal",
+            "type": "digit",
+            "unit": null
+          },
+          "showFieldDescr": false
+        },
+        "1700020104539": {
+          "dataTypeName": "float",
+          "displayName": "total_first_response_time (hrs)",
+          "numFormat": {
+            "auto": true,
+            "kSep": true,
+            "precision": 4,
+            "precisionType": "significantDecimal",
+            "type": "digit",
+            "unit": null
+          },
+          "showFieldDescr": false
+        },
+        "1700020218118": {
+          "dataTypeName": "float",
+          "displayName": "First_contact_resolution",
+          "numFormat": {
+            "auto": true,
+            "kSep": true,
+            "precision": 4,
+            "precisionType": "significantDecimal",
+            "type": "digit",
+            "unit": null
+          },
+          "showFieldDescr": false
+        },
+        "1700007390071": {
+          "dataTypeName": "float",
+          "displayName": "Resolution Hours",
+          "numFormat": {
+            "auto": true,
+            "kSep": true,
+            "precision": 4,
+            "precisionType": "significantDecimal",
+            "type": "digit",
+            "unit": null
+          },
+          "showFieldDescr": false
+        },
+        "sum_1700035360433": {
+          "dataTypeName": "int",
+          "displayName": "Contact Cnt",
+          "numFormat": {
+            "auto": true,
+            "kSep": true,
+            "precision": 4,
+            "precisionType": "significantDecimal",
+            "type": "digit",
+            "unit": null
+          },
+          "showFieldDescr": false
+        },
+        "1700022235841": {
+          "dataTypeName": "int",
+          "numFormat": {
+            "auto": true,
+            "kSep": true,
+            "precision": 4,
+            "precisionType": "significantDecimal",
+            "type": "digit",
+            "unit": null
+          }
+        },
+        "1700017930910": {
+          "dataTypeName": "float",
+          "numFormat": {
+            "auto": true,
+            "kSep": true,
+            "precision": 4,
+            "precisionType": "significantDecimal",
+            "type": "digit",
+            "unit": null
+          }
+        }
+      }
+    },
+    "dashboardId": 332941
+  }
+}

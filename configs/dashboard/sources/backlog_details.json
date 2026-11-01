@@ -1,0 +1,2088 @@
+{
+  "metric_name": "backlog_details",
+  "enabled": true,
+  "endpoint": "https://aeolus-va.bytelemon.com/aeolus/vqs/openApi/v2/vizQuery/download",
+  "output": {
+    "directory": "downloads",
+    "filename_prefix": "backlog_details"
+  },
+  "dynamic_date": {
+    "enabled": true,
+    "field_id": "1700017671301",
+    "weeks_back": 5,
+    "include_current_week": true,
+    "week_start": "sunday"
+  },
+  "payload": {
+    "downloadConfig": {
+      "limit": 10000,
+      "type": "all",
+      "fileFormat": "csv",
+      "encoding": "UTF-8",
+      "disableScientificNotation": true,
+      "reportName": "backlog_details.csv",
+      "downloadOrderList": [],
+      "downloadType": "default",
+      "enableHiddenFields": true,
+      "keepDataFormat": false
+    },
+    "version": 4,
+    "metaData": {
+      "appId": 0
+    },
+    "reportId": 0,
+    "dataSourceId": 0,
+    "query": {
+      "dataSetId": 0,
+      "dataSetIdList": [
+        0
+      ],
+      "fabricBlendingModelInfo": {},
+      "transform": {
+        "type": "table"
+      },
+      "groupByIdList": [
+        "dynamic260513164032113",
+        "1700017671306",
+        "1700029507920"
+      ],
+      "selectIdList": [
+        "dynamic250521103936065",
+        "sum_1700017671324",
+        "sum_1700017671325",
+        "sum_1700017671326",
+        "sum_1700017671327",
+        "sum_1700033217646",
+        "sum_1700033217647",
+        "sum_1700033217648",
+        "sum_1700033217649",
+        "sum_1700033217650",
+        "sum_1700017671329"
+      ],
+      "fillDateTimeList": [],
+      "followFilterRangeList": [],
+      "locations": {
+        "dimensions": [],
+        "rows": [
+          "1700029507920"
+        ],
+        "columns": [
+          "dynamic260513164032113",
+          "1700017671306"
+        ],
+        "tooltips": []
+      },
+      "dimMetList": [
+        {
+          "id": "dynamic260513164032113",
+          "originId": "1700017671301",
+          "dimMetId": 1700017671301,
+          "uniqueId": 260513164032113,
+          "name": "date",
+          "expr": "CAST(toDate(date) as Nullable(Date))",
+          "fullExpr": "CAST(toDate(date) as Nullable(Date))",
+          "roleType": 0,
+          "scope": 0,
+          "dataType": "date",
+          "isRaw": false,
+          "mapKey": null,
+          "aggregation": {
+            "timeGranularityNum": 1,
+            "timeGranularityType": 8
+          },
+          "sourceType": "aggr",
+          "persisted": false,
+          "ownerEmailPrefix": "yueqing",
+          "dataSetId": 0
+        },
+        {
+          "id": "dynamic250521103936065",
+          "originId": "1700044258465",
+          "dimMetId": 1700044258465,
+          "uniqueId": 250521103936065,
+          "name": "Backlog Rate",
+          "expr": "[积压量//Backlog_cnt]/sum([close_cnt])",
+          "fullExpr": "(sum((unassigned_duration_over_24h_ticket_cnt) +(unprocessed_duration_over_24h_ticket_cnt) + (processing_duration_over_24h_ticket_cnt) + (pending_duration_over_72h_ticket_cnt)+ (onhold_duration_over_72h_ticket_cnt) ))/sum((close_cnt))",
+          "roleType": 1,
+          "scope": 2,
+          "dataType": "float",
+          "isRaw": false,
+          "mapKey": null,
+          "aggregation": {},
+          "sourceType": "raw",
+          "persisted": true,
+          "ownerEmailPrefix": "kim.tan",
+          "dataSetId": 0
+        },
+        {
+          "id": "sum_1700017671324",
+          "originId": "1700017671324",
+          "dimMetId": 1700017671324,
+          "uniqueId": 241111095456048,
+          "name": "unassigned_cnt",
+          "expr": "unassigned_cnt",
+          "fullExpr": "unassigned_cnt",
+          "roleType": 1,
+          "scope": 0,
+          "dataType": "int",
+          "isRaw": false,
+          "mapKey": null,
+          "aggregation": {
+            "exprAggr": "sum("
+          },
+          "sourceType": "aggr",
+          "persisted": false,
+          "ownerEmailPrefix": "yueqing",
+          "dataSetId": 0
+        },
+        {
+          "id": "sum_1700017671325",
+          "originId": "1700017671325",
+          "dimMetId": 1700017671325,
+          "uniqueId": 241111095456053,
+          "name": "unprocessed_cnt",
+          "expr": "unprocessed_cnt",
+          "fullExpr": "unprocessed_cnt",
+          "roleType": 1,
+          "scope": 0,
+          "dataType": "int",
+          "isRaw": false,
+          "mapKey": null,
+          "aggregation": {
+            "exprAggr": "sum("
+          },
+          "sourceType": "aggr",
+          "persisted": false,
+          "ownerEmailPrefix": "yueqing",
+          "dataSetId": 0
+        },
+        {
+          "id": "sum_1700017671326",
+          "originId": "1700017671326",
+          "dimMetId": 1700017671326,
+          "uniqueId": 241111095456056,
+          "name": "pending_cnt",
+          "expr": "pending_cnt",
+          "fullExpr": "pending_cnt",
+          "roleType": 1,
+          "scope": 0,
+          "dataType": "int",
+          "isRaw": false,
+          "mapKey": null,
+          "aggregation": {
+            "exprAggr": "sum("
+          },
+          "sourceType": "aggr",
+          "persisted": false,
+          "ownerEmailPrefix": "yueqing",
+          "dataSetId": 0
+        },
+        {
+          "id": "sum_1700017671327",
+          "originId": "1700017671327",
+          "dimMetId": 1700017671327,
+          "uniqueId": 241111095456059,
+          "name": "onhold_cnt",
+          "expr": "onhold_cnt",
+          "fullExpr": "onhold_cnt",
+          "roleType": 1,
+          "scope": 0,
+          "dataType": "int",
+          "isRaw": false,
+          "mapKey": null,
+          "aggregation": {
+            "exprAggr": "sum("
+          },
+          "sourceType": "aggr",
+          "persisted": false,
+          "ownerEmailPrefix": "yueqing",
+          "dataSetId": 0
+        },
+        {
+          "id": "sum_1700033217646",
+          "originId": "1700033217646",
+          "dimMetId": 1700033217646,
+          "uniqueId": 260505124000834,
+          "name": "unassigned_duration_over_24h_ticket_cnt",
+          "expr": "unassigned_duration_over_24h_ticket_cnt",
+          "fullExpr": "unassigned_duration_over_24h_ticket_cnt",
+          "roleType": 1,
+          "scope": 0,
+          "dataType": "int",
+          "isRaw": false,
+          "mapKey": null,
+          "aggregation": {
+            "exprAggr": "sum("
+          },
+          "sourceType": "aggr",
+          "persisted": false,
+          "ownerEmailPrefix": "yueqing",
+          "dataSetId": 0
+        },
+        {
+          "id": "sum_1700033217647",
+          "originId": "1700033217647",
+          "dimMetId": 1700033217647,
+          "uniqueId": 260505124000851,
+          "name": "unprocessed_duration_over_24h_ticket_cnt",
+          "expr": "unprocessed_duration_over_24h_ticket_cnt",
+          "fullExpr": "unprocessed_duration_over_24h_ticket_cnt",
+          "roleType": 1,
+          "scope": 0,
+          "dataType": "int",
+          "isRaw": false,
+          "mapKey": null,
+          "aggregation": {
+            "exprAggr": "sum("
+          },
+          "sourceType": "aggr",
+          "persisted": false,
+          "ownerEmailPrefix": "yueqing",
+          "dataSetId": 0
+        },
+        {
+          "id": "sum_1700033217648",
+          "originId": "1700033217648",
+          "dimMetId": 1700033217648,
+          "uniqueId": 260505124000869,
+          "name": "processing_duration_over_24h_ticket_cnt",
+          "expr": "processing_duration_over_24h_ticket_cnt",
+          "fullExpr": "processing_duration_over_24h_ticket_cnt",
+          "roleType": 1,
+          "scope": 0,
+          "dataType": "int",
+          "isRaw": false,
+          "mapKey": null,
+          "aggregation": {
+            "exprAggr": "sum("
+          },
+          "sourceType": "aggr",
+          "persisted": false,
+          "ownerEmailPrefix": "yueqing",
+          "dataSetId": 0
+        },
+        {
+          "id": "sum_1700033217649",
+          "originId": "1700033217649",
+          "dimMetId": 1700033217649,
+          "uniqueId": 260505124000881,
+          "name": "pending_duration_over_72h_ticket_cnt",
+          "expr": "pending_duration_over_72h_ticket_cnt",
+          "fullExpr": "pending_duration_over_72h_ticket_cnt",
+          "roleType": 1,
+          "scope": 0,
+          "dataType": "int",
+          "isRaw": false,
+          "mapKey": null,
+          "aggregation": {
+            "exprAggr": "sum("
+          },
+          "sourceType": "aggr",
+          "persisted": false,
+          "ownerEmailPrefix": "yueqing",
+          "dataSetId": 0
+        },
+        {
+          "id": "sum_1700033217650",
+          "originId": "1700033217650",
+          "dimMetId": 1700033217650,
+          "uniqueId": 260505124000901,
+          "name": "onhold_duration_over_72h_ticket_cnt",
+          "expr": "onhold_duration_over_72h_ticket_cnt",
+          "fullExpr": "onhold_duration_over_72h_ticket_cnt",
+          "roleType": 1,
+          "scope": 0,
+          "dataType": "int",
+          "isRaw": false,
+          "mapKey": null,
+          "aggregation": {
+            "exprAggr": "sum("
+          },
+          "sourceType": "aggr",
+          "persisted": false,
+          "ownerEmailPrefix": "yueqing",
+          "dataSetId": 0
+        },
+        {
+          "id": "sum_1700017671329",
+          "originId": "1700017671329",
+          "dimMetId": 1700017671329,
+          "uniqueId": 260505124000913,
+          "name": "close_cnt",
+          "expr": "close_cnt",
+          "fullExpr": "close_cnt",
+          "roleType": 1,
+          "scope": 0,
+          "dataType": "int",
+          "isRaw": false,
+          "mapKey": null,
+          "aggregation": {
+            "exprAggr": "sum("
+          },
+          "sourceType": "aggr",
+          "persisted": false,
+          "ownerEmailPrefix": "yueqing",
+          "dataSetId": 0
+        }
+      ],
+      "whereList": [
+        {
+          "name": "p_date",
+          "id": "1700017671299",
+          "preRelation": "and",
+          "uniqueId": 240314224653005,
+          "op": "lastSync",
+          "option": {
+            "isDefaultPartitionField": true,
+            "isReportFilter": false,
+            "isWhereInAggr": true
+          },
+          "val": [
+            1
+          ],
+          "valOption": {
+            "anchorOffset": 0,
+            "datetimeUnit": "day"
+          }
+        },
+        {
+          "name": "access_party_name",
+          "id": "1700029507920",
+          "preRelation": "and",
+          "uniqueId": 250526105554065,
+          "op": "in",
+          "option": {
+            "customList": [],
+            "desensitizationList": [],
+            "displayType": "multiDropDownList",
+            "filterPattern": "Accurate",
+            "isReportFilter": false,
+            "isWhereInAggr": true
+          },
+          "val": [
+            "Global Selling",
+            "Key Account Service",
+            "TikTok Shop Buyer Service",
+            "TikTok Shop Creator Service",
+            "TikTok Shop Seller Service"
+          ],
+          "valOption": {}
+        },
+        {
+          "name": "date",
+          "id": "1700017671301",
+          "preRelation": "and",
+          "uniqueId": 240314224653046,
+          "op": "between",
+          "val": [
+            "2026-09-27 00:00:00",
+            "2026-10-27 23:59:59"
+          ],
+          "valOption": {
+            "anchorOffset": 1,
+            "datetimeUnit": "day",
+            "hourSharp": true
+          },
+          "option": {
+            "isReportFilter": true,
+            "isWhereInAggr": true,
+            "dateMode": "absolute"
+          }
+        },
+        {
+          "name": "ticket_type_new_name_en",
+          "id": "1700017671312",
+          "preRelation": "and",
+          "uniqueId": 240623213810043,
+          "op": "not in",
+          "option": {
+            "customList": [],
+            "desensitizationList": [],
+            "displayType": "multiDropDownList",
+            "filterPattern": "Accurate",
+            "isReportFilter": false,
+            "isWhereInAggr": true
+          },
+          "val": [
+            "SubTicket"
+          ],
+          "valOption": {}
+        },
+        {
+          "name": "ticket_channel",
+          "id": "1700017671307",
+          "preRelation": "and",
+          "uniqueId": 240806095324021,
+          "op": "not in",
+          "option": {
+            "customList": [],
+            "desensitizationList": [],
+            "displayType": "multiDropDownList",
+            "filterPattern": "Accurate",
+            "isReportFilter": false,
+            "isWhereInAggr": true
+          },
+          "val": [
+            "200"
+          ],
+          "valOption": {}
+        },
+        {
+          "name": "skill_group_name",
+          "id": "1700029719889",
+          "preRelation": "and",
+          "uniqueId": 251121111915363,
+          "op": "in",
+          "val": [
+            "VN-KAS-L2L-Inquiry-IM-VB-L1",
+            "VN-KAS-L2L-Appeal-TK-VB-L1",
+            "VN-KAS-L2L-Inquiry-TK-VB-L1",
+            "VN-KAS-L2L-Star Plus Inquiry-TK-VB-L1",
+            "VN-CR-L2L-Inquiry-IM-VB-L1",
+            "VN-KAC-L2L-Inquiry-IM-VB-L1",
+            "VN-CR-L2L-Inquiry-TK-VB-L1",
+            "VN-KAC-L2L-Inquiry-TK-VB-L1",
+            "VN-SS-L2L-Appeal-TK-VB-L1",
+            "VN-SS-L2L-Inquiry-IM-VB-L1",
+            "VN-SS-L2L-Inquiry-TK-VB-L1",
+            "VN-SS-L2L-Star Plus Inquiry-TK-VB-L1"
+          ],
+          "valOption": {},
+          "option": {
+            "isReportFilter": true,
+            "isWhereInAggr": true,
+            "desensitizationList": [],
+            "customList": [
+              "VN-CR-L2L-Inquiry-IM-VB-L1",
+              "VN-KAC-L2L-Inquiry-IM-VB-L1",
+              "VN-KAS-L2L-Inquiry-IM-VB-L1"
+            ],
+            "displayType": "multiDropDownList",
+            "filterPattern": "Accurate"
+          }
+        },
+        {
+          "name": "ticket_channel_name_en",
+          "id": "1700017671309",
+          "preRelation": "and",
+          "uniqueId": 261027172503135,
+          "op": "not in",
+          "val": [
+            "Outbound",
+            "QUALITY_ASSURANCE"
+          ],
+          "valOption": {
+            "labelValueMap": {}
+          },
+          "option": {
+            "isReportFilter": false,
+            "isWhereInAggr": true,
+            "desensitizationList": [],
+            "customList": [],
+            "displayType": "multiDropDownList",
+            "filterPattern": "Accurate"
+          }
+        }
+      ],
+      "periodCompare": [],
+      "calculation": {
+        "trendTable": {}
+      },
+      "limit": 10000,
+      "sort": {},
+      "topN": null,
+      "paramList": [],
+      "cache": {
+        "enable": true,
+        "expire": null
+      },
+      "enableNullJoin": false,
+      "hasDynamicField": true,
+      "realMetricTableRouteConfig": {
+        "isRealMetricQuery": false
+      },
+      "fabricModelInfo": {},
+      "extendQuery": []
+    },
+    "schema": {
+      "annotation": {
+        "hash": "d751713988987e9331980363e24189ce"
+      },
+      "cache": {
+        "enable": true,
+        "expire": null
+      },
+      "colors": [],
+      "columns": [
+        {
+          "aggrConf": {
+            "timeGranularityNum": 1,
+            "timeGranularityType": 8
+          },
+          "dimMetId": 1700017671301,
+          "drillInfo": {
+            "groupId": "jhofimtv"
+          },
+          "fillDate": false,
+          "format": {
+            "timeFormat": {
+              "type": 1
+            }
+          },
+          "highlight": false,
+          "id": "dynamic260513164032113",
+          "index": 0,
+          "isMetric": false,
+          "location": "columns",
+          "originId": "1700017671301",
+          "pillType": "dynamic",
+          "roleType": 0,
+          "uniqueId": 260513164032113,
+          "unremovable": false
+        },
+        {
+          "uniqueId": 261027172503134,
+          "id": "1700017671306",
+          "location": "columns",
+          "dimMetId": 1700017671306,
+          "originId": "1700017671306",
+          "roleType": 0,
+          "aggrConf": {},
+          "format": {
+            "contentType": "link"
+          },
+          "drillInfo": {},
+          "isMetric": false,
+          "index": 1
+        }
+      ],
+      "details": [],
+      "dimensions": [],
+      "display": {
+        "conf": {
+          "alignDimension": "left",
+          "alignDimensionColumn": "auto",
+          "alignDimensionRow": "auto",
+          "alignMeasure": "right",
+          "alternateRow": true,
+          "alternateRowColor": "#FBFBFC",
+          "autoWrap": false,
+          "bodyFontColor": "#141414",
+          "bodyFontSize": 12,
+          "colSpaceMode": "tight",
+          "compact": false,
+          "compactDirection": "horizontal",
+          "customColPadding": null,
+          "customColWidth": null,
+          "customFields": {
+            "enable": true
+          },
+          "customRowPadding": null,
+          "dataLimit": 10000,
+          "display": "standard",
+          "expansionLabel": "",
+          "expansionLevel": 1,
+          "expansionType": "grid",
+          "gridLine": true,
+          "headerBackground": true,
+          "headerColor": "#EEF1F5",
+          "headerFontColor": "#1B1F23",
+          "headerFontSize": 12,
+          "headerHorizontal": true,
+          "headerMenu": true,
+          "headerVertical": true,
+          "hoverHighlight": "cross",
+          "pageSize": 50,
+          "pagination": false,
+          "rowHeaderWidth": null,
+          "rowSpaceMode": "tight",
+          "sortable": false,
+          "specialValue": {
+            "dimensions": "null",
+            "measures": "bracketTxt"
+          },
+          "tableStyle": "standard",
+          "version": 33
+        },
+        "enableAdvisor": true,
+        "queryType": "pivot_table",
+        "type": "pivot_table"
+      },
+      "drill": [],
+      "dynamicPillsMap": {
+        "dynamic250521103936065": {
+          "canEmpty": false,
+          "displayName": "Dynamic Metric",
+          "displayType": "singleTile",
+          "pillList": [
+            {
+              "aggrConf": {},
+              "dimMetId": 1700030019917,
+              "format": {
+                "conditionalFormat": {
+                  "data": [
+                    {
+                      "color": "#959DA5",
+                      "pillId": "250521103936074",
+                      "rules": [
+                        {
+                          "operandType": "fixed",
+                          "ruleType": "empty",
+                          "value": 0
+                        }
+                      ],
+                      "tagIcon": "icon-bar",
+                      "tagIconPosition": "left",
+                      "textColor": "#959DA5"
+                    },
+                    {
+                      "color": "#E33232",
+                      "pillId": "250521103936074",
+                      "rules": [
+                        {
+                          "operandType": "fixed",
+                          "ruleType": ">",
+                          "value": 1
+                        }
+                      ],
+                      "tagIcon": "icon-exclamation",
+                      "tagIconPosition": "left",
+                      "textColor": "#E33232"
+                    },
+                    {
+                      "color": "#D29B19",
+                      "pillId": "250521103936074",
+                      "rules": [
+                        {
+                          "operandType": "fixed",
+                          "ruleType": ">",
+                          "value": 0.8
+                        },
+                        {
+                          "operandType": "fixed",
+                          "ruleType": "<",
+                          "value": 1
+                        }
+                      ],
+                      "tagIcon": "icon-circle",
+                      "tagIconPosition": "left",
+                      "textColor": "#D29B19"
+                    },
+                    {
+                      "color": "#058D52",
+                      "pillId": "250521103936074",
+                      "rules": [
+                        {
+                          "operandType": "fixed",
+                          "ruleType": "<",
+                          "value": 0.8
+                        }
+                      ],
+                      "tagIcon": "icon-circle",
+                      "tagIconPosition": "left",
+                      "textColor": "#058D52"
+                    }
+                  ],
+                  "excludeTotal": false,
+                  "type": "tag"
+                },
+                "numFormat": {
+                  "auto": false,
+                  "kSep": true,
+                  "precision": 1,
+                  "precisionType": "decimalDigits",
+                  "prefix": "",
+                  "suffix": "",
+                  "type": "digit",
+                  "unit": {
+                    "ratio": 1,
+                    "symbol": ""
+                  }
+                }
+              },
+              "highlight": false,
+              "id": "1700030019917",
+              "index": 0,
+              "isMetric": false,
+              "location": "dynamic_mea",
+              "notJoinQuery": false,
+              "originId": "1700030019917",
+              "roleType": 1,
+              "uniqueId": 250521103936074,
+              "unremovable": false
+            },
+            {
+              "aggrConf": {},
+              "dimMetId": 10000001408077,
+              "format": {
+                "conditionalFormat": {
+                  "data": [
+                    {
+                      "color": "#959DA5",
+                      "pillId": "250521103936076",
+                      "rules": [
+                        {
+                          "operandType": "fixed",
+                          "ruleType": "empty",
+                          "value": 0
+                        }
+                      ],
+                      "tagIcon": "icon-bar",
+                      "tagIconPosition": "left",
+                      "textColor": "#959DA5"
+                    },
+                    {
+                      "color": "#E33232",
+                      "pillId": "250521103936076",
+                      "rules": [
+                        {
+                          "operandType": "fixed",
+                          "ruleType": ">",
+                          "value": 1
+                        }
+                      ],
+                      "tagIcon": "icon-exclamation",
+                      "tagIconPosition": "left",
+                      "textColor": "#E33232"
+                    },
+                    {
+                      "color": "#D29B19",
+                      "pillId": "250521103936076",
+                      "rules": [
+                        {
+                          "operandType": "fixed",
+                          "ruleType": ">",
+                          "value": 0.8
+                        },
+                        {
+                          "operandType": "fixed",
+                          "ruleType": "<",
+                          "value": 1
+                        }
+                      ],
+                      "tagIcon": "icon-circle",
+                      "tagIconPosition": "left",
+                      "textColor": "#D29B19"
+                    },
+                    {
+                      "color": "#058D52",
+                      "pillId": "250521103936076",
+                      "rules": [
+                        {
+                          "operandType": "fixed",
+                          "ruleType": "<",
+                          "value": 0.8
+                        }
+                      ],
+                      "tagIcon": "icon-circle",
+                      "tagIconPosition": "left",
+                      "textColor": "#058D52"
+                    }
+                  ],
+                  "excludeTotal": false,
+                  "type": "tag"
+                },
+                "numFormat": {
+                  "auto": false,
+                  "kSep": true,
+                  "precision": 1,
+                  "precisionType": "decimalDigits",
+                  "prefix": "",
+                  "suffix": "",
+                  "type": "digit",
+                  "unit": {
+                    "ratio": 1,
+                    "symbol": ""
+                  }
+                }
+              },
+              "highlight": false,
+              "id": "10000001408077",
+              "index": 0,
+              "isMetric": false,
+              "location": "dynamic_mea",
+              "notJoinQuery": false,
+              "originId": "10000001408077",
+              "roleType": 1,
+              "uniqueId": 250521103936076,
+              "unremovable": false
+            },
+            {
+              "aggrConf": {},
+              "dimMetId": 1700044258465,
+              "format": {
+                "conditionalFormat": {
+                  "data": [
+                    {
+                      "color": "#959DA5",
+                      "pillId": "250528142203094",
+                      "rules": [
+                        {
+                          "operandType": "fixed",
+                          "ruleType": "empty",
+                          "value": 0
+                        }
+                      ],
+                      "tagIcon": "icon-bar",
+                      "tagIconPosition": "left",
+                      "textColor": "#959DA5"
+                    },
+                    {
+                      "color": "#E33232",
+                      "pillId": "250528142203094",
+                      "rules": [
+                        {
+                          "operandType": "fixed",
+                          "ruleType": ">",
+                          "value": 0.13
+                        }
+                      ],
+                      "tagIcon": "icon-exclamation",
+                      "tagIconPosition": "left",
+                      "textColor": "#E33232"
+                    }
+                  ],
+                  "excludeTotal": false,
+                  "type": "tag"
+                },
+                "dataTypeName": "float",
+                "numFormat": {
+                  "auto": false,
+                  "kSep": false,
+                  "precision": 2,
+                  "precisionType": "decimalDigits",
+                  "prefix": "",
+                  "suffix": "",
+                  "type": "percent",
+                  "unit": null
+                }
+              },
+              "highlight": false,
+              "id": "1700044258465",
+              "index": 0,
+              "isMetric": false,
+              "location": "dynamic_mea",
+              "notJoinQuery": false,
+              "originId": "1700044258465",
+              "roleType": 1,
+              "uniqueId": 250528142203094,
+              "unremovable": false
+            },
+            {
+              "aggrConf": {},
+              "dimMetId": 10000017992483,
+              "format": {
+                "conditionalFormat": {
+                  "data": [
+                    {
+                      "color": "#959DA5",
+                      "pillId": "260505124000216",
+                      "rules": [
+                        {
+                          "operandType": "fixed",
+                          "ruleType": "empty",
+                          "value": 0
+                        }
+                      ],
+                      "tagIcon": "icon-bar",
+                      "tagIconPosition": "left",
+                      "textColor": "#959DA5"
+                    },
+                    {
+                      "color": "#f5222d",
+                      "pillId": "260505124000216",
+                      "rules": [
+                        {
+                          "operandType": "fixed",
+                          "ruleType": ">",
+                          "value": 0.1
+                        }
+                      ],
+                      "tagIcon": "icon-exclamation",
+                      "tagIconPosition": "left",
+                      "textColor": "#f5222d"
+                    }
+                  ],
+                  "excludeTotal": false,
+                  "type": "tag"
+                },
+                "dataTypeName": "float",
+                "numFormat": {
+                  "auto": false,
+                  "kSep": false,
+                  "precision": 2,
+                  "precisionType": "decimalDigits",
+                  "prefix": "",
+                  "suffix": "",
+                  "type": "percent",
+                  "unit": null
+                }
+              },
+              "highlight": false,
+              "id": "10000017992483",
+              "index": 0,
+              "isMetric": false,
+              "location": "dynamic_mea",
+              "notJoinQuery": false,
+              "originId": "10000017992483",
+              "roleType": 1,
+              "uniqueId": 260505124000216,
+              "unremovable": false
+            },
+            {
+              "aggrConf": {},
+              "dimMetId": 10000017992484,
+              "format": {
+                "conditionalFormat": {
+                  "data": [
+                    {
+                      "color": "#959DA5",
+                      "pillId": "260505124000217",
+                      "rules": [
+                        {
+                          "operandType": "fixed",
+                          "ruleType": "empty",
+                          "value": 0
+                        }
+                      ],
+                      "tagIcon": "icon-bar",
+                      "tagIconPosition": "left",
+                      "textColor": "#959DA5"
+                    },
+                    {
+                      "color": "#f5222d",
+                      "pillId": "260505124000217",
+                      "rules": [
+                        {
+                          "operandType": "fixed",
+                          "ruleType": ">",
+                          "value": 0.03
+                        }
+                      ],
+                      "tagIcon": "icon-exclamation",
+                      "tagIconPosition": "left",
+                      "textColor": "#f5222d"
+                    }
+                  ],
+                  "excludeTotal": false,
+                  "type": "tag"
+                },
+                "dataTypeName": "float",
+                "numFormat": {
+                  "auto": false,
+                  "kSep": false,
+                  "precision": 2,
+                  "precisionType": "decimalDigits",
+                  "prefix": "",
+                  "suffix": "",
+                  "type": "percent",
+                  "unit": null
+                }
+              },
+              "highlight": false,
+              "id": "10000017992484",
+              "index": 0,
+              "isMetric": false,
+              "location": "dynamic_mea",
+              "notJoinQuery": false,
+              "originId": "10000017992484",
+              "roleType": 1,
+              "uniqueId": 260505124000217,
+              "unremovable": false
+            }
+          ],
+          "roleType": 1,
+          "selectedPillIdList": [
+            "1700044258465"
+          ]
+        },
+        "dynamic250526134215354": {
+          "canEmpty": true,
+          "displayType": "singleDropDownList",
+          "pillList": [
+            {
+              "aggrConf": {},
+              "dimMetId": 1700017671312,
+              "drillInfo": {
+                "groupId": "bgtllvqb"
+              },
+              "format": {
+                "contentType": "link"
+              },
+              "highlight": false,
+              "id": "1700017671312",
+              "index": 0,
+              "isMetric": false,
+              "location": "dynamic_dim",
+              "notJoinQuery": false,
+              "originId": "1700017671312",
+              "roleType": 0,
+              "uniqueId": 250526134215362,
+              "unremovable": false
+            },
+            {
+              "aggrConf": {},
+              "dimMetId": 1700029719889,
+              "format": {
+                "contentType": "link"
+              },
+              "highlight": false,
+              "id": "1700029719889",
+              "index": 0,
+              "isMetric": false,
+              "location": "dynamic_dim",
+              "notJoinQuery": false,
+              "originId": "1700029719889",
+              "roleType": 0,
+              "uniqueId": 250526134215363,
+              "unremovable": false
+            }
+          ],
+          "roleType": 0,
+          "selectedPillIdList": []
+        },
+        "dynamic260513164032113": {
+          "canEmpty": false,
+          "displayType": "singleDropDownList",
+          "pillList": [
+            {
+              "aggrConf": {
+                "timeGranularityNum": 1,
+                "timeGranularityType": 8
+              },
+              "dimMetId": 1700017671301,
+              "drillInfo": {
+                "groupId": "jhofimtv"
+              },
+              "format": {
+                "timeFormat": {
+                  "type": 1
+                }
+              },
+              "highlight": false,
+              "id": "time_8_1_1700017671301",
+              "index": 0,
+              "isMetric": false,
+              "location": "dynamic_dim",
+              "notJoinQuery": false,
+              "originId": "1700017671301",
+              "roleType": 0,
+              "uniqueId": 260513164032137,
+              "unremovable": false
+            },
+            {
+              "aggrConf": {
+                "timeGranularityNum": 7,
+                "timeGranularityType": 9
+              },
+              "dimMetId": 1700017671301,
+              "drillInfo": {
+                "groupId": "tpptlp7j"
+              },
+              "format": {
+                "timeFormat": {
+                  "type": 1
+                }
+              },
+              "highlight": false,
+              "id": "time_9_7_1700017671301",
+              "index": 0,
+              "isMetric": false,
+              "location": "dynamic_dim",
+              "notJoinQuery": false,
+              "originId": "1700017671301",
+              "roleType": 0,
+              "uniqueId": 260513164032138,
+              "unremovable": false
+            },
+            {
+              "aggrConf": {
+                "timeGranularityNum": 1,
+                "timeGranularityType": 7
+              },
+              "dimMetId": 1700017671301,
+              "drillInfo": {
+                "groupId": "tiwsmh62"
+              },
+              "format": {
+                "timeFormat": {
+                  "type": 1
+                }
+              },
+              "highlight": false,
+              "id": "time_7_1_1700017671301",
+              "index": 0,
+              "isMetric": false,
+              "location": "dynamic_dim",
+              "notJoinQuery": false,
+              "originId": "1700017671301",
+              "roleType": 0,
+              "uniqueId": 260513164032139,
+              "unremovable": false
+            },
+            {
+              "aggrConf": {
+                "timeGranularityNum": 1,
+                "timeGranularityType": 12
+              },
+              "dimMetId": 1700017671301,
+              "format": {
+                "timeFormat": {
+                  "type": 1
+                }
+              },
+              "highlight": false,
+              "id": "time_12_1_1700017671301",
+              "index": 0,
+              "isMetric": false,
+              "location": "dynamic_dim",
+              "notJoinQuery": false,
+              "originId": "1700017671301",
+              "roleType": 0,
+              "uniqueId": 260513164032140,
+              "unremovable": false
+            }
+          ],
+          "roleType": 0,
+          "selectedPillIdList": [
+            "time_8_1_1700017671301"
+          ]
+        }
+      },
+      "enableNullJoin": false,
+      "extensions": {
+        "data": {},
+        "list": [],
+        "protocolVersion": 1
+      },
+      "measures": [
+        {
+          "aggrConf": {},
+          "dimMetId": 1700044258465,
+          "fillDate": false,
+          "format": {
+            "conditionalFormat": {
+              "data": [
+                {
+                  "color": "#959DA5",
+                  "pillId": "250528142203094",
+                  "rules": [
+                    {
+                      "operandType": "fixed",
+                      "ruleType": "empty",
+                      "value": 0
+                    }
+                  ],
+                  "tagIcon": "icon-bar",
+                  "tagIconPosition": "left",
+                  "textColor": "#959DA5"
+                },
+                {
+                  "color": "#E33232",
+                  "pillId": "250528142203094",
+                  "rules": [
+                    {
+                      "operandType": "fixed",
+                      "ruleType": ">",
+                      "value": 0.13
+                    }
+                  ],
+                  "tagIcon": "icon-exclamation",
+                  "tagIconPosition": "left",
+                  "textColor": "#E33232"
+                }
+              ],
+              "excludeTotal": false,
+              "type": "tag"
+            },
+            "dataTypeName": "float",
+            "numFormat": {
+              "auto": false,
+              "kSep": false,
+              "precision": 2,
+              "precisionType": "decimalDigits",
+              "prefix": "",
+              "suffix": "",
+              "type": "percent",
+              "unit": null
+            }
+          },
+          "highlight": false,
+          "id": "dynamic250521103936065",
+          "index": 0,
+          "isMetric": false,
+          "location": "measures",
+          "originId": "1700044258465",
+          "pillType": "dynamic",
+          "roleType": 1,
+          "uniqueId": 250521103936065,
+          "unremovable": false
+        },
+        {
+          "aggrConf": {
+            "exprAggr": "sum("
+          },
+          "dimMetId": 1700017671324,
+          "format": {
+            "dataTypeName": "int",
+            "numFormat": {
+              "auto": false,
+              "kSep": true,
+              "precision": 0,
+              "precisionType": "decimalDigits",
+              "prefix": "",
+              "suffix": "",
+              "type": "digit",
+              "unit": {
+                "ratio": 1,
+                "symbol": ""
+              }
+            }
+          },
+          "id": "sum_1700017671324",
+          "index": 1,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "measures",
+          "originId": "1700017671324",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 241111095456048
+        },
+        {
+          "aggrConf": {
+            "exprAggr": "sum("
+          },
+          "dimMetId": 1700017671325,
+          "format": {
+            "dataTypeName": "int",
+            "numFormat": {
+              "auto": false,
+              "kSep": true,
+              "precision": 0,
+              "precisionType": "decimalDigits",
+              "prefix": "",
+              "suffix": "",
+              "type": "digit",
+              "unit": {
+                "ratio": 1,
+                "symbol": ""
+              }
+            }
+          },
+          "id": "sum_1700017671325",
+          "index": 2,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "measures",
+          "originId": "1700017671325",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 241111095456053
+        },
+        {
+          "aggrConf": {
+            "exprAggr": "sum("
+          },
+          "dimMetId": 1700017671326,
+          "format": {
+            "dataTypeName": "int",
+            "numFormat": {
+              "auto": false,
+              "kSep": true,
+              "precision": 0,
+              "precisionType": "decimalDigits",
+              "prefix": "",
+              "suffix": "",
+              "type": "digit",
+              "unit": {
+                "ratio": 1,
+                "symbol": ""
+              }
+            }
+          },
+          "id": "sum_1700017671326",
+          "index": 3,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "measures",
+          "originId": "1700017671326",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 241111095456056
+        },
+        {
+          "aggrConf": {
+            "exprAggr": "sum("
+          },
+          "dimMetId": 1700017671327,
+          "format": {
+            "dataTypeName": "int",
+            "numFormat": {
+              "auto": false,
+              "kSep": true,
+              "precision": 0,
+              "precisionType": "decimalDigits",
+              "prefix": "",
+              "suffix": "",
+              "type": "digit",
+              "unit": {
+                "ratio": 1,
+                "symbol": ""
+              }
+            }
+          },
+          "id": "sum_1700017671327",
+          "index": 4,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "measures",
+          "originId": "1700017671327",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 241111095456059
+        },
+        {
+          "aggrConf": {
+            "exprAggr": "sum("
+          },
+          "dimMetId": 1700033217646,
+          "drillInfo": {},
+          "format": {
+            "dataTypeName": "int",
+            "numFormat": {
+              "auto": true,
+              "kSep": true,
+              "precision": 4,
+              "precisionType": "significantDecimal",
+              "type": "digit",
+              "unit": null
+            }
+          },
+          "id": "sum_1700033217646",
+          "index": 5,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "measures",
+          "originId": "1700033217646",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 260505124000834
+        },
+        {
+          "aggrConf": {
+            "exprAggr": "sum("
+          },
+          "dimMetId": 1700033217647,
+          "drillInfo": {},
+          "format": {
+            "dataTypeName": "int",
+            "numFormat": {
+              "auto": true,
+              "kSep": true,
+              "precision": 4,
+              "precisionType": "significantDecimal",
+              "type": "digit",
+              "unit": null
+            }
+          },
+          "id": "sum_1700033217647",
+          "index": 6,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "measures",
+          "originId": "1700033217647",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 260505124000851
+        },
+        {
+          "aggrConf": {
+            "exprAggr": "sum("
+          },
+          "dimMetId": 1700033217648,
+          "drillInfo": {},
+          "format": {
+            "dataTypeName": "int",
+            "numFormat": {
+              "auto": true,
+              "kSep": true,
+              "precision": 4,
+              "precisionType": "significantDecimal",
+              "type": "digit",
+              "unit": null
+            }
+          },
+          "id": "sum_1700033217648",
+          "index": 7,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "measures",
+          "originId": "1700033217648",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 260505124000869
+        },
+        {
+          "aggrConf": {
+            "exprAggr": "sum("
+          },
+          "dimMetId": 1700033217649,
+          "drillInfo": {},
+          "format": {
+            "dataTypeName": "int",
+            "numFormat": {
+              "auto": true,
+              "kSep": true,
+              "precision": 4,
+              "precisionType": "significantDecimal",
+              "type": "digit",
+              "unit": null
+            }
+          },
+          "id": "sum_1700033217649",
+          "index": 8,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "measures",
+          "originId": "1700033217649",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 260505124000881
+        },
+        {
+          "aggrConf": {
+            "exprAggr": "sum("
+          },
+          "dimMetId": 1700033217650,
+          "drillInfo": {},
+          "format": {
+            "dataTypeName": "int",
+            "numFormat": {
+              "auto": true,
+              "kSep": true,
+              "precision": 4,
+              "precisionType": "significantDecimal",
+              "type": "digit",
+              "unit": null
+            }
+          },
+          "id": "sum_1700033217650",
+          "index": 9,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "measures",
+          "originId": "1700033217650",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 260505124000901
+        },
+        {
+          "aggrConf": {
+            "exprAggr": "sum("
+          },
+          "dimMetId": 1700017671329,
+          "drillInfo": {},
+          "format": {
+            "dataTypeName": "int",
+            "numFormat": {
+              "auto": true,
+              "kSep": true,
+              "precision": 4,
+              "precisionType": "significantDecimal",
+              "type": "digit",
+              "unit": null
+            }
+          },
+          "id": "sum_1700017671329",
+          "index": 10,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "measures",
+          "originId": "1700017671329",
+          "roleType": 1,
+          "type": "string",
+          "uniqueId": 260505124000913
+        }
+      ],
+      "measuresGroups": [],
+      "pagination": null,
+      "parameters": [],
+      "periodCompare": [],
+      "realMetricTableRouteConfig": {
+        "isRealMetricQuery": false
+      },
+      "referenceLine": [],
+      "reportFilterConfig": {
+        "layoutSize": "Normal",
+        "structType": "LeftRight"
+      },
+      "rows": [
+        {
+          "aggrConf": {},
+          "dimMetId": 1700029507920,
+          "drillInfo": {
+            "groupId": "e05bzey9"
+          },
+          "format": {
+            "contentType": "link"
+          },
+          "id": "1700029507920",
+          "index": 0,
+          "isGeoField": false,
+          "isMetric": false,
+          "location": "rows",
+          "originId": "1700029507920",
+          "roleType": 0,
+          "type": "string",
+          "uniqueId": 250519134619285
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 261027172503137,
+          "fillDate": false,
+          "format": {},
+          "highlight": false,
+          "id": "dynamic250526134215354",
+          "index": 1,
+          "location": "rows",
+          "notJoinQuery": true,
+          "originId": "261027172503137",
+          "pillType": "dynamic",
+          "roleType": 0,
+          "sourceType": "placeholder",
+          "uniqueId": 250526134215354,
+          "unremovable": false
+        },
+        {
+          "aggrConf": {},
+          "dimMetId": 250526134215091,
+          "drillInfo": {
+            "groupId": "wrfq71w3"
+          },
+          "format": {},
+          "highlight": false,
+          "id": "placeholder_250526134215091",
+          "index": 2,
+          "location": "rows",
+          "name": "Measure name ",
+          "notJoinQuery": true,
+          "originId": "250526134215091",
+          "pillType": "placeholder",
+          "roleType": 0,
+          "sourceType": "raw",
+          "uniqueId": 250526134215091,
+          "unremovable": true
+        }
+      ],
+      "sizes": [],
+      "subMeasures": [],
+      "tableCalculation": {
+        "rules": []
+      },
+      "tooltips": [],
+      "whereList": [
+        {
+          "aggrConf": {},
+          "dataSetId": 0,
+          "dataTypeName": "date",
+          "dimMetId": 1700017671299,
+          "filter": {
+            "op": "lastSync",
+            "option": {
+              "isDefaultPartitionField": true,
+              "isReportFilter": false,
+              "isWhereInAggr": true
+            },
+            "val": [
+              1
+            ],
+            "valOption": {
+              "anchorOffset": 0,
+              "datetimeUnit": "day"
+            }
+          },
+          "format": {},
+          "highlight": false,
+          "id": "1700017671299",
+          "index": 0,
+          "location": "whereList",
+          "name": "p_date",
+          "originId": "1700017671299",
+          "preRelation": "and",
+          "roleType": 0,
+          "showEditComponent": false,
+          "undraggable": false,
+          "uniqueId": 240314224653005,
+          "unremovable": true
+        },
+        {
+          "aggrConf": {},
+          "dataSetId": 0,
+          "dimMetId": 1700029507920,
+          "filter": {
+            "op": "in",
+            "option": {
+              "customList": [],
+              "desensitizationList": [],
+              "displayType": "multiDropDownList",
+              "filterPattern": "Accurate",
+              "isReportFilter": false,
+              "isWhereInAggr": true
+            },
+            "val": [
+              "Global Selling",
+              "Key Account Service",
+              "TikTok Shop Buyer Service",
+              "TikTok Shop Creator Service",
+              "TikTok Shop Seller Service"
+            ],
+            "valOption": {}
+          },
+          "format": {
+            "contentType": "link"
+          },
+          "id": "1700029507920",
+          "index": 1,
+          "isMetric": false,
+          "isRequired": false,
+          "location": "whereList",
+          "name": "access_party_name",
+          "originId": "1700029507920",
+          "preRelation": "and",
+          "roleType": 0,
+          "showEditComponent": false,
+          "uniqueId": 250526105554065
+        },
+        {
+          "uniqueId": 240314224653046,
+          "id": "1700017671301",
+          "location": "whereList",
+          "dimMetId": 1700017671301,
+          "originId": "1700017671301",
+          "roleType": 0,
+          "aggrConf": {},
+          "format": {
+            "displayName": "date"
+          },
+          "isMetric": false,
+          "name": "date",
+          "preRelation": "and",
+          "filter": {
+            "op": "between",
+            "val": [
+              "2026-09-27 00:00:00",
+              "2026-10-27 23:59:59"
+            ],
+            "valOption": {
+              "anchorOffset": 1,
+              "datetimeUnit": "day",
+              "hourSharp": true
+            },
+            "option": {
+              "isReportFilter": true,
+              "isWhereInAggr": true,
+              "dateMode": "absolute"
+            }
+          },
+          "dataSetId": 0,
+          "index": 2,
+          "showEditComponent": false
+        },
+        {
+          "aggrConf": {},
+          "dataSetId": 0,
+          "dimMetId": 1700017671312,
+          "drillInfo": {},
+          "filter": {
+            "op": "not in",
+            "option": {
+              "customList": [],
+              "desensitizationList": [],
+              "displayType": "multiDropDownList",
+              "filterPattern": "Accurate",
+              "isReportFilter": false,
+              "isWhereInAggr": true
+            },
+            "val": [
+              "SubTicket"
+            ],
+            "valOption": {}
+          },
+          "format": {
+            "contentType": "link"
+          },
+          "id": "1700017671312",
+          "index": 3,
+          "isRequired": false,
+          "location": "whereList",
+          "name": "ticket_type_new_name_en",
+          "originId": "1700017671312",
+          "preRelation": "and",
+          "roleType": 0,
+          "showEditComponent": false,
+          "uniqueId": 240623213810043
+        },
+        {
+          "aggrConf": {},
+          "dataSetId": 0,
+          "dimMetId": 1700017671307,
+          "drillInfo": {},
+          "filter": {
+            "op": "not in",
+            "option": {
+              "customList": [],
+              "desensitizationList": [],
+              "displayType": "multiDropDownList",
+              "filterPattern": "Accurate",
+              "isReportFilter": false,
+              "isWhereInAggr": true
+            },
+            "val": [
+              "200"
+            ],
+            "valOption": {}
+          },
+          "format": {},
+          "id": "1700017671307",
+          "index": 4,
+          "isRequired": false,
+          "location": "whereList",
+          "name": "ticket_channel",
+          "originId": "1700017671307",
+          "preRelation": "and",
+          "roleType": 0,
+          "showEditComponent": false,
+          "uniqueId": 240806095324021
+        },
+        {
+          "isRequired": false,
+          "uniqueId": 251121111915363,
+          "id": "1700029719889",
+          "location": "whereList",
+          "dimMetId": 1700029719889,
+          "originId": "1700029719889",
+          "roleType": 0,
+          "aggrConf": {},
+          "format": {
+            "contentType": "link",
+            "displayName": "skill_group_name"
+          },
+          "isMetric": false,
+          "name": "skill_group_name",
+          "preRelation": "and",
+          "filter": {
+            "op": "in",
+            "val": [
+              "VN-KAS-L2L-Inquiry-IM-VB-L1",
+              "VN-KAS-L2L-Appeal-TK-VB-L1",
+              "VN-KAS-L2L-Inquiry-TK-VB-L1",
+              "VN-KAS-L2L-Star Plus Inquiry-TK-VB-L1",
+              "VN-CR-L2L-Inquiry-IM-VB-L1",
+              "VN-KAC-L2L-Inquiry-IM-VB-L1",
+              "VN-CR-L2L-Inquiry-TK-VB-L1",
+              "VN-KAC-L2L-Inquiry-TK-VB-L1",
+              "VN-SS-L2L-Appeal-TK-VB-L1",
+              "VN-SS-L2L-Inquiry-IM-VB-L1",
+              "VN-SS-L2L-Inquiry-TK-VB-L1",
+              "VN-SS-L2L-Star Plus Inquiry-TK-VB-L1"
+            ],
+            "valOption": {},
+            "option": {
+              "isReportFilter": true,
+              "isWhereInAggr": true,
+              "desensitizationList": [],
+              "customList": [
+                "VN-CR-L2L-Inquiry-IM-VB-L1",
+                "VN-KAC-L2L-Inquiry-IM-VB-L1",
+                "VN-KAS-L2L-Inquiry-IM-VB-L1"
+              ],
+              "displayType": "multiDropDownList",
+              "filterPattern": "Accurate"
+            }
+          },
+          "dataSetId": 0,
+          "index": 5,
+          "showEditComponent": false
+        },
+        {
+          "uniqueId": 261027172503135,
+          "id": "1700017671309",
+          "location": "whereList",
+          "dimMetId": 1700017671309,
+          "originId": "1700017671309",
+          "roleType": 0,
+          "aggrConf": {},
+          "format": {
+            "contentType": "link"
+          },
+          "isMetric": false,
+          "preRelation": "and",
+          "filter": {
+            "op": "not in",
+            "val": [
+              "Outbound",
+              "QUALITY_ASSURANCE"
+            ],
+            "valOption": {
+              "labelValueMap": {}
+            },
+            "option": {
+              "isReportFilter": false,
+              "isWhereInAggr": true,
+              "desensitizationList": [],
+              "customList": [],
+              "displayType": "multiDropDownList",
+              "filterPattern": "Accurate"
+            }
+          },
+          "name": "ticket_channel_name_en",
+          "dataSetId": 0,
+          "subFilterIds": [],
+          "index": 6,
+          "showEditComponent": false
+        }
+      ],
+      "whiteList": [
+        1700030019917,
+        10000001408077,
+        1700044258465,
+        10000017992483,
+        10000017992484,
+        1700017671312,
+        1700029719889,
+        1700017671301
+      ]
+    },
+    "display": {
+      "conf": {
+        "alignDimension": "left",
+        "alignDimensionColumn": "auto",
+        "alignDimensionRow": "auto",
+        "alignMeasure": "right",
+        "alternateRow": true,
+        "alternateRowColor": "#FBFBFC",
+        "autoWrap": false,
+        "bodyFontColor": "#141414",
+        "bodyFontSize": 12,
+        "colSpaceMode": "tight",
+        "compact": false,
+        "compactDirection": "horizontal",
+        "customColPadding": null,
+        "customColWidth": null,
+        "customFields": {
+          "enable": true
+        },
+        "customRowPadding": null,
+        "dataLimit": 10000,
+        "display": "standard",
+        "expansionLabel": "",
+        "expansionLevel": 1,
+        "expansionType": "grid",
+        "gridLine": true,
+        "headerBackground": true,
+        "headerColor": "#EEF1F5",
+        "headerFontColor": "#1B1F23",
+        "headerFontSize": 12,
+        "headerHorizontal": true,
+        "headerMenu": true,
+        "headerVertical": true,
+        "hoverHighlight": "cross",
+        "pageSize": 50,
+        "pagination": false,
+        "rowHeaderWidth": null,
+        "rowSpaceMode": "tight",
+        "sortable": false,
+        "specialValue": {
+          "dimensions": "null",
+          "measures": "bracketTxt"
+        },
+        "tableStyle": "standard",
+        "version": 33
+      },
+      "enableAdvisor": true,
+      "queryType": "pivot_table",
+      "type": "pivot_table",
+      "fieldsFormat": {
+        "dynamic250521103936065": {
+          "conditionalFormat": {
+            "data": [
+              {
+                "color": "#959DA5",
+                "pillId": "250528142203094",
+                "rules": [
+                  {
+                    "operandType": "fixed",
+                    "ruleType": "empty",
+                    "value": 0
+                  }
+                ],
+                "tagIcon": "icon-bar",
+                "tagIconPosition": "left",
+                "textColor": "#959DA5"
+              },
+              {
+                "color": "#E33232",
+                "pillId": "250528142203094",
+                "rules": [
+                  {
+                    "operandType": "fixed",
+                    "ruleType": ">",
+                    "value": 0.13
+                  }
+                ],
+                "tagIcon": "icon-exclamation",
+                "tagIconPosition": "left",
+                "textColor": "#E33232"
+              }
+            ],
+            "excludeTotal": false,
+            "type": "tag"
+          },
+          "dataTypeName": "float",
+          "numFormat": {
+            "auto": false,
+            "kSep": false,
+            "precision": 2,
+            "precisionType": "decimalDigits",
+            "prefix": "",
+            "suffix": "",
+            "type": "percent",
+            "unit": null
+          }
+        },
+        "sum_1700017671324": {
+          "dataTypeName": "int",
+          "numFormat": {
+            "auto": false,
+            "kSep": true,
+            "precision": 0,
+            "precisionType": "decimalDigits",
+            "prefix": "",
+            "suffix": "",
+            "type": "digit",
+            "unit": {
+              "ratio": 1,
+              "symbol": ""
+            }
+          }
+        },
+        "sum_1700017671325": {
+          "dataTypeName": "int",
+          "numFormat": {
+            "auto": false,
+            "kSep": true,
+            "precision": 0,
+            "precisionType": "decimalDigits",
+            "prefix": "",
+            "suffix": "",
+            "type": "digit",
+            "unit": {
+              "ratio": 1,
+              "symbol": ""
+            }
+          }
+        },
+        "sum_1700017671326": {
+          "dataTypeName": "int",
+          "numFormat": {
+            "auto": false,
+            "kSep": true,
+            "precision": 0,
+            "precisionType": "decimalDigits",
+            "prefix": "",
+            "suffix": "",
+            "type": "digit",
+            "unit": {
+              "ratio": 1,
+              "symbol": ""
+            }
+          }
+        },
+        "sum_1700017671327": {
+          "dataTypeName": "int",
+          "numFormat": {
+            "auto": false,
+            "kSep": true,
+            "precision": 0,
+            "precisionType": "decimalDigits",
+            "prefix": "",
+            "suffix": "",
+            "type": "digit",
+            "unit": {
+              "ratio": 1,
+              "symbol": ""
+            }
+          }
+        },
+        "sum_1700033217646": {
+          "dataTypeName": "int",
+          "numFormat": {
+            "auto": true,
+            "kSep": true,
+            "precision": 4,
+            "precisionType": "significantDecimal",
+            "type": "digit",
+            "unit": null
+          }
+        },
+        "sum_1700033217647": {
+          "dataTypeName": "int",
+          "numFormat": {
+            "auto": true,
+            "kSep": true,
+            "precision": 4,
+            "precisionType": "significantDecimal",
+            "type": "digit",
+            "unit": null
+          }
+        },
+        "sum_1700033217648": {
+          "dataTypeName": "int",
+          "numFormat": {
+            "auto": true,
+            "kSep": true,
+            "precision": 4,
+            "precisionType": "significantDecimal",
+            "type": "digit",
+            "unit": null
+          }
+        },
+        "sum_1700033217649": {
+          "dataTypeName": "int",
+          "numFormat": {
+            "auto": true,
+            "kSep": true,
+            "precision": 4,
+            "precisionType": "significantDecimal",
+            "type": "digit",
+            "unit": null
+          }
+        },
+        "sum_1700033217650": {
+          "dataTypeName": "int",
+          "numFormat": {
+            "auto": true,
+            "kSep": true,
+            "precision": 4,
+            "precisionType": "significantDecimal",
+            "type": "digit",
+            "unit": null
+          }
+        },
+        "sum_1700017671329": {
+          "dataTypeName": "int",
+          "numFormat": {
+            "auto": true,
+            "kSep": true,
+            "precision": 4,
+            "precisionType": "significantDecimal",
+            "type": "digit",
+            "unit": null
+          }
+        }
+      }
+    },
+    "dashboardId": 274012
+  }
+}
