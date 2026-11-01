@@ -1,0 +1,7 @@
+{
+  "name": "tqm_details",
+  "table_name": "tqm",
+  "file_pattern": "downloads/dashboard/**/tqm_details-*.csv",
+  "enabled": true,
+  "recursive": true
+}

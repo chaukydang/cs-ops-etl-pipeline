@@ -1,0 +1,7 @@
+{
+  "name": "fc_actual_details",
+  "table_name": "forecast_actual",
+  "file_pattern": "downloads/dashboard/**/fc_actual_details-*.csv",
+  "enabled": true,
+  "recursive": true
+}

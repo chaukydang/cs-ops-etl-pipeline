@@ -1,0 +1,7 @@
+{
+  "name": "productivity_data_report",
+  "table_name": "productivity_hourly",
+  "file_pattern": "downloads/lark/sheets/transformed/ProductivityDataReport.csv",
+  "enabled": true,
+  "recursive": true
+}

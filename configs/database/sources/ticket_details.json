@@ -1,0 +1,7 @@
+{
+  "name": "ticket_details",
+  "table_name": "tickets",
+  "file_pattern": "downloads/dashboard/**/ticket_details-*.csv",
+  "enabled": true,
+  "recursive": true
+}

@@ -1,0 +1,7 @@
+{
+  "name": "backlog_details",
+  "table_name": "backlog_daily",
+  "file_pattern": "downloads/dashboard/**/backlog_details-*.csv",
+  "enabled": true,
+  "recursive": true
+}

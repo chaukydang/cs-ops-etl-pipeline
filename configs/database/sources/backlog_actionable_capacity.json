@@ -1,0 +1,7 @@
+{
+  "name": "backlog_actionable_capacity",
+  "table_name": "backlog_hourly",
+  "file_pattern": "downloads/lark/sheets/transformed/BacklogActionAbleCapacity.csv",
+  "enabled": true,
+  "recursive": true
+}

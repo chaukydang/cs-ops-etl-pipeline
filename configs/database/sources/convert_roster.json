@@ -1,0 +1,7 @@
+{
+  "name": "convert_roster",
+  "table_name": "roster",
+  "file_pattern": "downloads/lark/base/WFM Service - Adjust Roster_Convert_Roster_Converted.csv",
+  "enabled": true,
+  "recursive": true
+}

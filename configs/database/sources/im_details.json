@@ -1,0 +1,7 @@
+{
+  "name": "im_details",
+  "table_name": "im",
+  "file_pattern": "downloads/dashboard/**/im_details-*.csv",
+  "enabled": true,
+  "recursive": true
+}

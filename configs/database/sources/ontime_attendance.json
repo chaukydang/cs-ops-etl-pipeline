@@ -1,0 +1,7 @@
+{
+  "name": "ontime_attendance",
+  "table_name": "attendance",
+  "file_pattern": "downloads/dashboard/**/ontime_attendance-*.csv",
+  "enabled": true,
+  "recursive": true
+}

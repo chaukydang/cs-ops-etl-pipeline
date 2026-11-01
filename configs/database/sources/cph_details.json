@@ -1,0 +1,7 @@
+{
+  "name": "cph_details",
+  "table_name": "productivity_daily",
+  "file_pattern": "downloads/dashboard/**/cph_details-*.csv",
+  "enabled": true,
+  "recursive": true
+}

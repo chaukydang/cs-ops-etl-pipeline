@@ -1,0 +1,7 @@
+{
+  "name": "csat_details",
+  "table_name": "csat",
+  "file_pattern": "downloads/dashboard/**/csat_details-*.csv",
+  "enabled": true,
+  "recursive": true
+}

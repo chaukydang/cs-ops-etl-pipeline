@@ -1,0 +1,5 @@
+{
+  "schema": "Service",
+  "source_directory": "configs/database/sources",
+  "continue_on_error": true
+}
