@@ -1,4 +1,8 @@
+{{ config(materialized='incremental', unique_key='row_key', incremental_strategy='delete+insert') }}
+
 select
+    md5(create_date::text || '|' || coalesce(skill_group, '') || '|'
+        || coalesce(user_type, '') || '|' || coalesce(channel, '')) as row_key,
     create_date,
     skill_group,
     user_type,
@@ -11,4 +15,5 @@ select
     avg(resolution_hrs)                               as avg_resolution_hrs,
     count(*) filter (where is_fcr) / nullif(count(*), 0)::numeric as fcr_rate
 from {{ ref('stg_tickets') }}
-group by 1, 2, 3, 4
+where 1 = 1 {{ recent_window('create_date') }}
+group by 1, 2, 3, 4, 5
