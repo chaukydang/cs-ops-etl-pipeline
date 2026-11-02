@@ -329,7 +329,7 @@ def main() -> None:
             row[cph_ix["business_date"]] = day.isoformat()
             row[cph_ix["cs_sps_spg_efficiency_official"]] = "SPG" if s["agent"]["tier"] == "Tier 2 Agent" else "SPS"
             row[cph_ix["segment"]] = s["segment"]
-            row[cph_ix["agent_primary_skill_group_name"]] = g
+            row[cph_ix["agent_primary_skill_group_name"]] = SKILL_GROUPS[g]["im"] if s["segment"] == "IM" else g
             row[cph_ix["cph_every_1_production_hour"]] = round(closed_i / prod_i, 4) if prod_i else ""
             row[cph_ix["close"]] = closed_i
             row[cph_ix["contact_new"]] = int(closed_i * rnd.uniform(1.0, 1.25))

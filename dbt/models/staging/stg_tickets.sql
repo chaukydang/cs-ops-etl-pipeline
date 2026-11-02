@@ -2,7 +2,11 @@ select
     {{ clean_text('ticket_id_id') }}                   as ticket_id,
     {{ to_date('create_date') }}                       as create_date,
     {{ to_date('close_date') }}                        as close_date,
-    {{ clean_text('ticket_skill_group_name') }}        as skill_group,
+    -- IM conversations are handled by the IM skill group, the rest by the ticket skill group
+    coalesce(
+        case when {{ clean_text('ticket_channel_name_en') }} = 'IM' then {{ clean_text('im_skill_group_name_im') }} end,
+        {{ clean_text('ticket_skill_group_name') }}
+    )                                                  as skill_group,
     lower({{ clean_text('final_dealer_email') }})      as agent_email,
     {{ clean_text('user_type_name_en') }}              as user_type,
     {{ clean_text('ticket_channel_name_en') }}         as channel,

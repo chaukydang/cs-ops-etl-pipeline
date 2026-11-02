@@ -22,6 +22,22 @@ import queries as data  # noqa: E402
 
 st.set_page_config(page_title="CS Operations Report", layout="wide")
 
+# make the tab bar read as navigation: larger labels, a filled selected tab, a visible bar underneath
+st.markdown(
+    """
+    <style>
+    [role="tablist"] { gap: 6px; padding: 6px; background: #eef3fb; border-radius: 10px; border: 0; }
+    [role="tab"] { height: 42px; padding: 0 18px; border-radius: 8px; background: transparent; }
+    [role="tab"] p { font-size: 1.02rem; font-weight: 600; color: #3b4a5f; }
+    [role="tab"]:hover { background: #dce8f8; }
+    [role="tab"][aria-selected="true"] { background: #2a78d6; box-shadow: 0 1px 3px rgba(42,120,214,.35); }
+    [role="tab"][aria-selected="true"] p { color: #ffffff; }
+    [role="tab"] .react-aria-SelectionIndicator, [data-baseweb="tab-highlight"], [data-baseweb="tab-border"] { display: none; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 @st.cache_data(ttl=300, show_spinner=False)
 def cached(name: str, *args):
