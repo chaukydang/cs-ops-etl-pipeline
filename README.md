@@ -2,6 +2,10 @@
 
 Daily ELT for the TikTok Shop customer service operations reports. It pulls data from the BI dashboard and from Lark, keeps a Parquet archive, loads the raw data into **BigQuery or PostgreSQL**, models it with dbt (staging, dimensions, facts, reconciliation tests) and serves a dashboard, with monitoring and alerts around every step.
 
+**Live report:** [tiktok-operations-etl-pipeline.streamlit.app](https://tiktok-operations-etl-pipeline.streamlit.app/), running on the bundled sample data (synthetic, no real figures).
+
+![Daily report: KA and Non-KA tables with targets and status](docs/images/dashboard-daily-report.png)
+
 ```mermaid
 flowchart LR
     subgraph Sources
