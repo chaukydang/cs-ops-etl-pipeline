@@ -204,6 +204,16 @@ class Writer:
         print(f"{path.name}: {len(rows)} rows")
 
 
+FAMILY = ["nguyen", "tran", "le", "pham", "hoang", "vu", "dang", "bui", "do", "ngo", "duong", "ly"]
+GIVEN = ["anh", "linh", "huy", "trang", "minh", "thao", "hung", "ngoc", "quan", "lan", "phuc", "mai",
+         "khoa", "hoa", "tuan", "yen", "nam", "chi", "duc", "vy"]
+
+
+def fake_email(rnd: random.Random, n: int) -> str:
+    """Vietnamese-style work address on a reserved domain; the number keeps it unique."""
+    return f"{rnd.choice(GIVEN)}.{rnd.choice(FAMILY)}{n:02d}@example.com"
+
+
 def make_agents(rnd: random.Random, count: int) -> list[dict]:
     names = list(SKILL_GROUPS)
     weights = [SKILL_GROUPS[n]["agents"] for n in names]
@@ -212,7 +222,7 @@ def make_agents(rnd: random.Random, count: int) -> list[dict]:
         tier = "Tier 2 Agent" if rnd.random() < 0.28 else "Tier 1 Agent"
         tenure_i = rnd.choices(range(len(TENURES)), TENURE_WEIGHTS)[0]
         agents.append({
-            "email": f"agent{n:03d}@example.com",
+            "email": fake_email(rnd, n),
             "team": TEAMS[n % len(TEAMS)],
             "tier": tier,
             "tenure": TENURES[tenure_i],
@@ -302,8 +312,14 @@ def main() -> None:
             f = fill[g]
             noise = rnd.gauss(1.0, 0.06)
             closed_i = max(int(round(s["capacity"] * f * noise)), 0)
+            # s["online"] is the time spent in the three working statuses; the report adds
+            # abnormal time on top of it to get the hours the agent was available.
             busy = s["online"] * clamp(0.28 + 0.48 * f + rnd.gauss(0, 0.025), 0.25, 0.9)
-            idle = max(s["online"] - busy, 0.0)
+            idle = min(max(s["online"] - busy, 0.0), s["online"] * rnd.uniform(0.05, 0.12))
+            waiting = max(s["online"] - busy - idle, 0.0)
+            available = s["online"] + s["abnormal"]
+            # hours counted as productive follow the workload: quiet days leave more idle time
+            prod_i = s["prod"] * clamp(0.66 + 0.22 * f + rnd.gauss(0, 0.012), 0.7, 0.99)
             concurrency = rnd.uniform(1.5, 2.1) if s["segment"] == "IM" else 1.0
             row = [""] * len(HEADERS["cph_details"])
             row[cph_ix["department_name"]] = s["agent"]["team"]
@@ -314,18 +330,18 @@ def main() -> None:
             row[cph_ix["cs_sps_spg_efficiency_official"]] = "SPG" if s["agent"]["tier"] == "Tier 2 Agent" else "SPS"
             row[cph_ix["segment"]] = s["segment"]
             row[cph_ix["agent_primary_skill_group_name"]] = g
-            row[cph_ix["cph_every_1_production_hour"]] = round(closed_i / s["prod"], 4) if s["prod"] else ""
+            row[cph_ix["cph_every_1_production_hour"]] = round(closed_i / prod_i, 4) if prod_i else ""
             row[cph_ix["close"]] = closed_i
             row[cph_ix["contact_new"]] = int(closed_i * rnd.uniform(1.0, 1.25))
             row[cph_ix["paid_hours"]] = round(s["paid"], 4)
-            row[cph_ix["productivity_rate_official"]] = round(s["prod"] / s["paid"], 4)
-            row[cph_ix["occupancy_rate"]] = round(busy / s["online"], 4)
-            row[cph_ix["utilization_rate"]] = round(s["online"] / s["paid"], 4)
+            row[cph_ix["productivity_rate_official"]] = round(prod_i / s["paid"], 4)
+            row[cph_ix["occupancy_rate"]] = round(prod_i / available, 4) if available else ""
+            row[cph_ix["utilization_rate"]] = round(available / s["paid"], 4)
             row[cph_ix["failed_cpd"]] = 1 if rnd.random() < 0.04 else 0
-            row[cph_ix["online_work_proportion"]] = round(s["online"] / s["paid"], 4)
+            row[cph_ix["online_work_proportion"]] = round(waiting / s["paid"], 4)
             row[cph_ix["busy_work_proportion"]] = round(busy / s["paid"], 4)
-            row[cph_ix["productivity_numerator_hrs"]] = round(s["prod"], 4)
-            row[cph_ix["online_hrs"]] = round(s["online"], 4)
+            row[cph_ix["productivity_numerator_hrs"]] = round(prod_i, 4)
+            row[cph_ix["online_hrs"]] = round(waiting, 4)
             row[cph_ix["busy_hrs"]] = round(busy, 4)
             row[cph_ix["idle_hrs"]] = round(idle, 4)
             row[cph_ix["abnormal_hrs"]] = round(s["abnormal"], 4)

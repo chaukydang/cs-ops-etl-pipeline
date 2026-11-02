@@ -17,6 +17,7 @@ import streamlit as st
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import charts  # noqa: E402
+import daily_report  # noqa: E402
 import queries as data  # noqa: E402
 
 st.set_page_config(page_title="CS Operations Report", layout="wide")
@@ -107,8 +108,7 @@ with st.sidebar:
         t_fcr = st.number_input("FCR, at least (%)", 0.0, 100.0, 72.0, 0.5) / 100
         t_res = st.number_input("Resolved in 24h, at least (%)", 0.0, 100.0, 95.0, 0.5) / 100
         t_cph = st.number_input("CPH, at least", 0.0, 60.0, 16.0, 0.5)
-        t_occ_low = st.number_input("Occupancy, from (%)", 0.0, 100.0, 65.0, 1.0) / 100
-        t_occ_high = st.number_input("Occupancy, up to (%)", 0.0, 100.0, 80.0, 1.0) / 100
+        t_occ = st.number_input("Occupancy, at least (%)", 0.0, 100.0, 80.0, 1.0) / 100
         t_ontime = st.number_input("On-time attendance, at least (%)", 0.0, 100.0, 95.0, 0.5) / 100
         t_frt = st.number_input("First response, at most (min)", 0.0, 600.0, 30.0, 1.0)
         st.caption("Targets are adjustable placeholders.")
@@ -143,8 +143,7 @@ cards = [
     ),
     (
         "Occupancy", pct(cur["occupancy"]), delta_points(cur["occupancy"], prev.get("occupancy")), False,
-        status(None if missing(cur["occupancy"]) else t_occ_low <= cur["occupancy"] <= t_occ_high,
-               f"{t_occ_low:.0%}–{t_occ_high:.0%}"),
+        status(None if missing(cur["occupancy"]) else cur["occupancy"] >= t_occ, f"≥ {t_occ:.0%}"),
     ),
     (
         "CSAT", pct(cur["csat"]), delta_points(cur["csat"], prev.get("csat")), False,
@@ -179,9 +178,24 @@ for row in (cards[:5], cards[5:]):
 SEGMENTS = ["IM", "Ticket"]
 GROUPS = cached("skill_groups")
 
-tab_overview, tab_prod, tab_quality, tab_backlog, tab_capacity, tab_agents, tab_status = st.tabs(
-    ["Overview", "Productivity", "Quality", "Backlog", "Capacity", "Agents", "Data status"]
+tab_daily, tab_overview, tab_prod, tab_quality, tab_backlog, tab_capacity, tab_agents, tab_status = st.tabs(
+    ["Daily report", "Overview", "Productivity", "Quality", "Backlog", "Capacity", "Agents", "Data status"]
 )
+
+# ---------------------------------------------------------------- daily report (KA / Non-KA)
+with tab_daily:
+    st.caption(
+        "Key accounts (KA, SPG) and non-key accounts (Non-KA, SPS). Columns: last 7 days, last four "
+        "Sunday-Saturday weeks and month to date. ● at or above target · ▲ at least 80% of target · ■ below 80%."
+    )
+    report_end = min(end, last_day)
+    window_start = max(first_day, report_end.replace(day=1) - timedelta(days=45))
+    daily = cached("daily_metrics", window_start, report_end)
+    keys = ["cph", "conpd", "occupancy", "utilization", "csat", "fcr", "resolved_24h"]
+    for group, title in (("KA", "Key accounts (KA)"), ("Non-KA", "Non-key accounts (Non-KA)")):
+        st.subheader(title)
+        values, flags = daily_report.build_table(daily, group, report_end, keys)
+        st.dataframe(daily_report.render(values, flags, group, report_end), width="stretch")
 
 # ---------------------------------------------------------------- overview
 with tab_overview:

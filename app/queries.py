@@ -121,7 +121,7 @@ def kpis(start: date, end: date, skills: list[str]) -> dict:
         f"""
         select sum(closed) as closed,
                sum(closed) * 1.0 / nullif(sum(productivity_hrs), 0) as cph,
-               sum(busy_hrs) * 1.0 / nullif(sum(online_hrs), 0)     as occupancy
+               sum(productivity_hrs) * 1.0 / nullif(sum(online_hrs + busy_hrs + idle_hrs + abnormal_hrs), 0)     as occupancy
         from marts.fct_productivity_daily
         where business_date between %(start)s and %(end)s {clause}
         """,
@@ -198,7 +198,7 @@ def weekly_productivity(start: date, end: date, skills: list[str]) -> pd.DataFra
         select (business_date - extract(dow from business_date)::int) as week_start,
                segment,
                sum(closed) * 1.0 / nullif(sum(productivity_hrs), 0) as cph,
-               sum(busy_hrs) * 1.0 / nullif(sum(online_hrs), 0) as occupancy,
+               sum(productivity_hrs) * 1.0 / nullif(sum(online_hrs + busy_hrs + idle_hrs + abnormal_hrs), 0) as occupancy,
                sum(closed) as closed,
                sum(productivity_hrs) as productivity_hrs
         from marts.fct_productivity_daily
@@ -221,7 +221,7 @@ def productivity_by(dimension: str, start: date, end: date, skills: list[str]) -
         select {column} as {dimension},
                count(distinct f.agent_key) as agents,
                sum(f.closed) * 1.0 / nullif(sum(f.productivity_hrs), 0) as cph,
-               sum(f.busy_hrs) * 1.0 / nullif(sum(f.online_hrs), 0) as occupancy
+               sum(f.productivity_hrs) * 1.0 / nullif(sum(f.online_hrs + f.busy_hrs + f.idle_hrs + f.abnormal_hrs), 0) as occupancy
         from marts.fct_productivity_daily f
         join marts.dim_agent a using (agent_key)
         where f.business_date between %(start)s and %(end)s {clause}
@@ -232,14 +232,14 @@ def productivity_by(dimension: str, start: date, end: date, skills: list[str]) -
 
 
 def weekly_hours(start: date, end: date, skills: list[str]) -> pd.DataFrame:
-    """Where paid time goes: busy, idle while online, and non-production time."""
+    """Where paid time goes: busy, waiting/idle, and non-production (break, training, meeting, abnormal) time."""
     clause, params = _params(start, end, skills)
     return query(
         f"""
         select (business_date - extract(dow from business_date)::int) as week_start,
                sum(busy_hrs) as busy,
-               sum(online_hrs) - sum(busy_hrs) as idle,
-               sum(non_production_hrs) as non_production
+               sum(online_hrs + idle_hrs) as idle,
+               sum(non_production_hrs + abnormal_hrs) as non_production
         from marts.fct_productivity_daily
         where business_date between %(start)s and %(end)s {clause}
         group by 1 order by 1
@@ -407,4 +407,63 @@ def recent_runs(limit: int = 30) -> pd.DataFrame:
         f'select finished_at, stage, source, status, rows, duration_s, error '
         f'from "{schema}".pipeline_runs order by id desc limit %(n)s',
         {"n": limit},
+    )
+
+
+def daily_metrics(start: date, end: date) -> pd.DataFrame:
+    """One row per day and key-account group with the headline metrics of the daily report."""
+    params = {"start": start, "end": end}
+    prod = query(
+        """
+        select business_date as day, ka_group,
+               sum(closed) as closed,
+               sum(contacts) as contacts,
+               sum(productivity_hrs) as productivity_hrs,
+               sum(online_hrs + busy_hrs + idle_hrs + abnormal_hrs) as available_hrs,
+               sum(paid_hours) as paid_hours,
+               count(distinct agent_key) as agents
+        from marts.fct_productivity_daily
+        where business_date between %(start)s and %(end)s
+        group by 1, 2
+        """,
+        params,
+    )
+    tickets = query(
+        """
+        select create_date as day,
+               case when position('-KAS-' in skill_group) > 0 then 'KA' else 'Non-KA' end as ka_group,
+               sum(tickets) as tickets,
+               sum(closed_tickets) as closed_tickets,
+               sum(fcr_tickets) as fcr_tickets,
+               sum(resolved_24h_tickets) as resolved_24h_tickets
+        from marts.fct_tickets_daily
+        where create_date between %(start)s and %(end)s
+        group by 1, 2
+        """,
+        params,
+    )
+    csat = query(
+        """
+        select survey_date as day,
+               case when position('-KAS-' in skill_group) > 0 then 'KA' else 'Non-KA' end as ka_group,
+               sum(responses) as responses, sum(satisfied) as satisfied
+        from marts.fct_csat_daily
+        where survey_date between %(start)s and %(end)s
+        group by 1, 2
+        """,
+        params,
+    )
+    out = prod.merge(tickets, on=["day", "ka_group"], how="outer").merge(csat, on=["day", "ka_group"], how="outer")
+    return out.sort_values(["ka_group", "day"]).reset_index(drop=True)
+
+
+def on_time_daily(start: date, end: date) -> pd.DataFrame:
+    return query(
+        """
+        select schedule_date as day, sum(attendance_count) as shifts, sum(late_count) as late
+        from marts.fct_attendance_daily
+        where schedule_date between %(start)s and %(end)s
+        group by 1
+        """,
+        {"start": start, "end": end},
     )
