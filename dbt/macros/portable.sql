@@ -85,3 +85,8 @@
 {%- endmacro %}
 {% macro default__as_date(expr) -%}({{ expr }})::date{%- endmacro %}
 {% macro bigquery__as_date(expr) -%}{{ expr }}{%- endmacro %}
+
+{# Key-account split used by the daily report: KAS skill groups are KA (SPG), the rest Non-KA (SPS). #}
+{% macro ka_group(skill_expr) -%}
+    case when {{ skill_expr }} like '%-KAS-%' then 'KA' else 'Non-KA' end
+{%- endmacro %}

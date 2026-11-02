@@ -1,6 +1,6 @@
 # Sample dashboard (no database)
 
-The dashboard is a multi-tab operations report: KPI cards with change versus the previous period and targets, productivity (CPH, occupancy, tenure, tier, team), quality (CSAT, FCR, 24h resolution, first response), backlog and ageing, forecast versus actual with staffing, an agent scorecard and a data-freshness page. Weekly charts only show complete Sunday-to-Saturday weeks.
+The dashboard is a multi-tab operations report. The first tab is the daily report: KA and Non-KA tables with CPH, ConPD, occupancy, utilization, CSAT, FCR and 24h resolution over the last 7 days, four weeks and month to date, coloured by distance to an effective-dated target (`app/targets.py`). Then: KPI cards with change versus the previous period and targets, productivity (CPH, occupancy, tenure, tier, team), quality (CSAT, FCR, 24h resolution, first response), backlog and ageing, forecast versus actual with staffing, an agent scorecard and a data-freshness page. Weekly charts only show complete Sunday-to-Saturday weeks.
 
 It runs without a database in **sample mode**: it loads the CSV files in `app/sample_data/` (synthetic marts produced by `scripts/make_demo_data.py` + dbt) into an in-memory DuckDB and runs the same queries it runs against PostgreSQL. Sample mode is used automatically when `DB_HOST` is not set, or when `SAMPLE_DATA=1`.
 
@@ -47,5 +47,5 @@ The generator follows the patterns of a support operation (weekday volume, promo
 ## Notes
 
 - Every figure in sample mode is synthetic. The page footer says so (`Source: sample dataset (synthetic)`); keep that line, readers should know what they are looking at.
-- Agent ids in the sample are hashes of fake e-mails (`agentNNN@example.com`).
+- Agent ids in the sample are hashes of fake e-mails (addresses like `name.family12@example.com`, generated).
 - Streamlit Community Cloud puts apps to sleep after a period without visitors; the first visit afterwards takes a few seconds to wake it.

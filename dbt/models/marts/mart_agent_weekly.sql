@@ -7,7 +7,7 @@ with prod as (
         sum(paid_hours)        as paid_hours,
         sum(productivity_hrs)  as productivity_hrs,
         sum(online_hrs)        as online_hrs,
-        sum(busy_hrs)          as busy_hrs
+        sum(busy_hrs + idle_hrs + abnormal_hrs) as other_available_hrs
     from {{ ref('fct_productivity_daily') }}
     group by 1, 2
 ),
@@ -37,8 +37,8 @@ select
     prod.closed,
     prod.paid_hours,
     prod.closed / nullif(prod.productivity_hrs, 0)   as cph,
-    prod.online_hrs / nullif(prod.paid_hours, 0)     as online_rate,
-    prod.busy_hrs / nullif(prod.online_hrs, 0)       as occupancy,
+    (prod.online_hrs + prod.other_available_hrs) / nullif(prod.paid_hours, 0) as utilization,
+    prod.productivity_hrs / nullif(prod.online_hrs + prod.other_available_hrs, 0) as occupancy,
     att.shifts,
     att.late_shifts,
     1 - att.late_shifts / nullif(att.shifts, 0)      as on_time_rate,

@@ -188,7 +188,7 @@ raw (schema Service) -> staging (views, typed + cleaned) -> marts (tables)
 | Model | Grain |
 |-------|-------|
 | `dim_date`, `dim_agent` | day; agent (latest tier / tenure / team, keyed by hashed e-mail) |
-| `fct_productivity_daily` | agent x day x segment x skill group (CPH, online rate, occupancy) |
+| `fct_productivity_daily` | agent x day x segment x skill group (CPH, occupancy, utilization, KA / Non-KA group) |
 | `fct_attendance_daily` | agent x day (shifts, late, on-time rate) |
 | `fct_tickets_daily` | create date x skill group x user type x channel (volume, FCR, resolution time) |
 | `fct_csat_daily` | date x skill group x channel (CSAT = share of 4-5 scores) |

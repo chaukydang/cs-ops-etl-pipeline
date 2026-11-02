@@ -31,7 +31,8 @@ Keeping raw as text means a load never fails on a bad value, and the original ex
 | Metric | Definition |
 |--------|------------|
 | CPH | tickets closed / productivity hours |
-| Occupancy | busy hours / online hours |
+| Occupancy | productivity hours / (online + busy + idle + abnormal hours) |
+| Utilization | (online + busy + idle + abnormal hours) / paid hours |
 | Online rate | online hours / paid hours |
 | CSAT | share of survey responses scoring 4 or 5 (5-point scale) |
 | FCR | tickets marked first-contact-resolved / tickets created |
