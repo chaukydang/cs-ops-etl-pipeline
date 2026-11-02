@@ -36,7 +36,7 @@ flowchart LR
     R --> O --> N
 ```
 
-## 2. Daily schedule (Airflow, 07:00 Asia/Ho_Chi_Minh)
+## 2. Daily schedule (Prefect flow, 07:00 Asia/Ho_Chi_Minh)
 
 ```mermaid
 flowchart LR
@@ -46,7 +46,7 @@ flowchart LR
     archive --> spark_history
 ```
 
-`dashboard` and `lark` run in parallel. A failed task retries twice, then posts to the Lark webhook. The database load is skipped when an earlier stage failed, so a bad day never overwrites good data. The same stages can be run by hand with `python main.py --module <name>`.
+`dashboard` and `lark` run in parallel. A failed task retries twice (10 minute delay), then posts to the Lark webhook; tasks downstream of a failure do not run. The database load is skipped when an earlier stage failed, so a bad day never overwrites good data. The same stages can be run by hand with `python main.py --module <name>`.
 
 ## 3. How one dashboard report is loaded
 

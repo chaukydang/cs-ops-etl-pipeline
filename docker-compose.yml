@@ -1,4 +1,4 @@
-# Local stack: PostgreSQL (target), MinIO (Parquet archive), Airflow (scheduler + UI).
+# Local stack: PostgreSQL (target), MinIO (Parquet archive), Prefect (server + the scheduled flow), dashboard.
 # Credentials below are for local use only.
 services:
   postgres:
@@ -37,31 +37,42 @@ services:
       until mc alias set local http://minio:9000 minio minio_local; do sleep 2; done;
       mc mb --ignore-existing local/cs-ops-archive"
 
-  airflow:
+  prefect:
     build: .
-    command: standalone
+    command: prefect server start --host 0.0.0.0
+    ports:
+      - "4200:4200"
+    volumes:
+      - prefect_home:/root/.prefect
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:4200/api/health')"]
+      interval: 10s
+      retries: 12
+
+  pipeline:
+    build: .
     depends_on:
       postgres:
         condition: service_healthy
+      prefect:
+        condition: service_healthy
     env_file: .env
     environment:
+      PREFECT_API_URL: http://prefect:4200/api
       DB_HOST: postgres
       DB_PORT: "5432"
       DB_NAME: warehouse
       DB_USER: etl
       DB_PASSWORD: etl_local
       DB_SSLMODE: disable
-      ARCHIVE_DIR: /opt/airflow/pipeline/data/archive
+      ARCHIVE_DIR: /opt/pipeline/data/archive
       ARCHIVE_S3_BUCKET: cs-ops-archive
       ARCHIVE_S3_ENDPOINT: http://minio:9000
       ARCHIVE_S3_ACCESS_KEY: minio
       ARCHIVE_S3_SECRET_KEY: minio_local
-    ports:
-      - "8080:8080"
     volumes:
-      - ./dags:/opt/airflow/pipeline/dags
-      - pipeline_data:/opt/airflow/pipeline/data
-      - pipeline_downloads:/opt/airflow/pipeline/downloads
+      - pipeline_data:/opt/pipeline/data
+      - pipeline_downloads:/opt/pipeline/downloads
 
   app:
     build:
@@ -86,3 +97,4 @@ volumes:
   miniodata:
   pipeline_data:
   pipeline_downloads:
+  prefect_home:

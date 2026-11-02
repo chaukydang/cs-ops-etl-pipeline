@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS {schema}.pipeline_runs (
 
 
 def default_run_id() -> str:
-    """Airflow passes its run id through PIPELINE_RUN_ID; otherwise one per process."""
+    """The orchestrator (Prefect) passes its run id through PIPELINE_RUN_ID; otherwise one per process."""
     return os.getenv("PIPELINE_RUN_ID") or uuid.uuid4().hex[:12]
 
 

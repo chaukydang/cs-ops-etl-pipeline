@@ -1,25 +1,26 @@
-FROM apache/airflow:2.10.5-python3.12
+FROM python:3.12-slim
 
-USER root
 RUN apt-get update \
     && apt-get install -y --no-install-recommends chromium chromium-driver openjdk-17-jre-headless \
     && rm -rf /var/lib/apt/lists/*
 
-USER airflow
-COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
+WORKDIR /opt/pipeline
 
-COPY requirements-dbt.txt /tmp/requirements-dbt.txt
-RUN python -m venv /home/airflow/dbt-venv \
-    && /home/airflow/dbt-venv/bin/pip install --no-cache-dir -r /tmp/requirements-dbt.txt
+# dbt and Spark get their own virtualenvs so their dependency pins stay out of the main one
+COPY requirements-dbt.txt requirements-spark.txt ./
+RUN python -m venv /opt/venvs/dbt   && /opt/venvs/dbt/bin/pip install --no-cache-dir -r requirements-dbt.txt \
+    && python -m venv /opt/venvs/spark && /opt/venvs/spark/bin/pip install --no-cache-dir -r requirements-spark.txt
 
-COPY requirements-spark.txt /tmp/requirements-spark.txt
-RUN python -m venv /home/airflow/spark-venv \
-    && /home/airflow/spark-venv/bin/pip install --no-cache-dir -r /tmp/requirements-spark.txt
+COPY requirements.txt requirements-prefect.txt ./
+RUN pip install --no-cache-dir -r requirements.txt -r requirements-prefect.txt
 
-COPY --chown=airflow:root . /opt/airflow/pipeline
-ENV PIPELINE_HOME=/opt/airflow/pipeline \
-    AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/pipeline/dags \
-    AIRFLOW__CORE__LOAD_EXAMPLES=False \
+COPY . .
+
+ENV PIPELINE_HOME=/opt/pipeline \
+    DBT_BIN=/opt/venvs/dbt/bin/dbt \
+    SPARK_PYTHON=/opt/venvs/spark/bin/python \
     AEOLUS_HEADLESS=true \
     AEOLUS_CHROME_DRIVER_PATH=/usr/bin/chromedriver
+
+# serves the flow and runs it daily at 07:00 (Asia/Ho_Chi_Minh)
+CMD ["python", "-m", "flows.cs_ops_etl"]

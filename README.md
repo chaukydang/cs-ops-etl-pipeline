@@ -118,7 +118,7 @@ Each chunk is downloaded, loaded incrementally and archived as Parquet. A chunk 
 
 - Every database load is written to `<DB_SCHEMA>.pipeline_runs` (stage, source, status, rows, duration, error, details).
 - `python main.py --module monitor` reports sources whose table is missing, whose newest date is more than `max_lag_days` old (per source in the config, default 3), or with no successful load in the last `MONITOR_MAX_LOAD_AGE_HOURS` (default 36). Problems are sent to the Lark webhook and make the command exit non-zero.
-- In Airflow, any failed task posts to the same webhook (`notify_failure` in the DAG), and `monitor` runs as the last task.
+- In the Prefect flow, a task that still fails after its retries posts to the same webhook, and `monitor` runs as the last task.
 
 ## Dashboard
 
@@ -192,19 +192,29 @@ python -m spark.productivity_history --archive-dir data/archive --out-dir data/l
 
 At the current volume (a few hundred thousand rows a day at most) plain pandas would also do the job; the point of Spark here is that the history keeps growing and the dedupe-by-latest-snapshot step scales with it.
 
-## Scheduling with Airflow
+## Scheduling with Prefect
 
-`dags/cs_ops_etl.py` runs the stages daily at 07:00 (Asia/Ho_Chi_Minh): `dashboard` and `lark` in parallel, then `archive`, then `load_postgres`, then `dbt_build`, then `monitor`; `spark_history` runs next to the load. Each task just calls `python main.py --module ...`, so a failed task can be reproduced by hand.
+`flows/cs_ops_etl.py` is the daily flow (07:00, Asia/Ho_Chi_Minh): `dashboard` and `lark` in parallel, then `archive`, then `load_postgres`, then `dbt_build`, then `monitor`; `spark_history` runs next to the load. Each task runs `python main.py --module ...` (or dbt / the Spark job) and streams its output into the Prefect log, so a failed task can be reproduced by hand. A task whose upstream failed does not run. Tasks retry twice with a 10 minute delay and have a timeout.
 
-A local stack (PostgreSQL, MinIO, Airflow) is defined in `docker-compose.yml`:
+```bash
+pip install -r requirements-prefect.txt
+python -m flows.cs_ops_etl --once        # run the whole flow now, no server needed
+
+# scheduled: the server has to be running, otherwise Prefect cannot schedule
+prefect server start                     # terminal 1, UI on http://localhost:4200
+export PREFECT_API_URL=http://127.0.0.1:4200/api
+python -m flows.cs_ops_etl               # terminal 2: registers the daily deployment and serves it
+```
+
+A local stack (PostgreSQL, MinIO, Prefect server, the scheduled flow, dashboard) is defined in `docker-compose.yml`:
 
 ```bash
 cp .env.example .env     # fill in the Aeolus / Lark / Outlook values
 docker compose up --build
-# Airflow UI: http://localhost:8080   MinIO console: http://localhost:9001
+# Prefect UI: http://localhost:4200   MinIO console: http://localhost:9001   Dashboard: http://localhost:8501
 ```
 
-The Airflow image ships Chromium and runs the browser step headless (`AEOLUS_HEADLESS=true`). The first login may need an interactive session to get past MFA; after that the profile under `data/` keeps the session. The compose file has not been run end to end against the real Aeolus login, so expect to adjust that part.
+The image ships Chromium and runs the browser step headless (`AEOLUS_HEADLESS=true`). The first login may need an interactive session to get past MFA; after that the profile under `data/` keeps the session. The compose file has not been run end to end against the real Aeolus login, so expect to adjust that part.
 
 ## Configuration
 
@@ -240,8 +250,8 @@ spark/                      history rebuild job (PySpark)
 dbt/                        staging + mart models, macros, tests
 app/                        Streamlit dashboard
 scripts/                    synthetic data generator
-dags/                       Airflow DAG
-Dockerfile, Dockerfile.app, docker-compose.yml
+flows/                      Prefect flow
+Dockerfile (pipeline + Prefect), Dockerfile.app (dashboard), docker-compose.yml
 tests/                      pytest (tests/integration needs PostgreSQL)
 ```
 
@@ -262,7 +272,7 @@ pytest
 
 dbt models are exercised by the `warehouse` CI job (see above).
 
-`tests/integration` runs against a real PostgreSQL when `DB_HOST` is set (otherwise skipped). The unit tests cover the pure helpers (env/config parsing, date-window calculation, header and identifier normalisation) and the Parquet archive and quality checks. The DAG structure test runs only when Airflow is installed. The download and database stages need real credentials and are not covered.
+`tests/integration` runs against a real PostgreSQL when `DB_HOST` is set (otherwise skipped). The unit tests cover the pure helpers (env/config parsing, date-window calculation, header and identifier normalisation) and the Parquet archive and quality checks. The Prefect flow is tested with the stage runner replaced by a recorder (ordering and failure propagation) plus a real-subprocess test of the runner. The download and database stages need real credentials and are not covered.
 
 ## License
 
