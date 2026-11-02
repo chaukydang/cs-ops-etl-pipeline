@@ -23,17 +23,32 @@ import queries as data  # noqa: E402
 
 st.set_page_config(page_title="CS Operations Report", layout="wide")
 
-# make the tab bar read as navigation: larger labels, a filled selected tab, a visible bar underneath
+# layout: tight page, compact KPI strip, tab bar that reads as navigation
 st.markdown(
     """
     <style>
-    [role="tablist"] { gap: 6px; padding: 6px; background: #eef3fb; border-radius: 10px; border: 0; }
-    [role="tab"] { height: 42px; padding: 0 18px; border-radius: 8px; background: transparent; }
-    [role="tab"] p { font-size: 1.02rem; font-weight: 600; color: #3b4a5f; }
+    .block-container { padding-top: 2.4rem; max-width: 1480px; }
+    h1 { font-size: 1.7rem !important; font-weight: 700 !important; padding: 0 !important; letter-spacing: -0.01em; }
+    .page-sub { color: #5d6b7d; font-size: .86rem; margin: -.2rem 0 1rem 0; }
+    .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 1.1rem; }
+    .kpi { border: 1px solid #dfe5ee; border-radius: 10px; padding: 10px 12px 9px; background: #fff; }
+    .kpi-label { font-size: .74rem; font-weight: 600; letter-spacing: .02em; color: #5d6b7d; text-transform: uppercase; }
+    .kpi-row { display: flex; align-items: baseline; gap: 8px; margin: 2px 0 4px; flex-wrap: wrap; }
+    .kpi-value { font-size: 1.65rem; font-weight: 700; color: #16233a; line-height: 1.15; }
+    .delta { font-size: .76rem; font-weight: 600; }
+    .delta.good { color: #0b7a4b; } .delta.bad { color: #b42318; }
+    .kpi-note { font-size: .74rem; color: #5d6b7d; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .pill { font-size: .7rem; font-weight: 600; padding: 1px 7px; border-radius: 999px; }
+    .pill.ok { background: #d6efe3; color: #0b5c3b; } .pill.off { background: #f8d4cf; color: #8a1f12; }
+    [role="tablist"] { gap: 4px; padding: 5px; background: #eef3fb; border-radius: 10px; border: 0; margin-bottom: .6rem; }
+    [role="tab"] { height: 38px; padding: 0 16px; border-radius: 8px; background: transparent; }
+    [role="tab"] p { font-size: .95rem; font-weight: 600; color: #3b4a5f; }
     [role="tab"]:hover { background: #dce8f8; }
     [role="tab"][aria-selected="true"] { background: #2a78d6; box-shadow: 0 1px 3px rgba(42,120,214,.35); }
     [role="tab"][aria-selected="true"] p { color: #ffffff; }
     [role="tab"] .react-aria-SelectionIndicator, [data-baseweb="tab-highlight"], [data-baseweb="tab-border"] { display: none; }
+    @media (max-width: 900px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+    h3 { font-size: 1.05rem !important; font-weight: 650 !important; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -93,15 +108,28 @@ def delta_units(unit: str, digits: int = 1):
 
 
 def status(ok: bool | None, target_text: str) -> str:
-    """Status is always an icon plus a word, never colour alone."""
+    """Target line under a KPI. Status is always an icon plus a word, never colour alone."""
     if ok is None:
-        return f"Target {target_text}"
-    mark = ":green[✓ On target]" if ok else ":red[✕ Off target]"
-    return f"{mark}  \nTarget {target_text}"
+        return f'<span class="kpi-target">Target {target_text}</span>'
+    cls, mark = ("ok", "✓ On target") if ok else ("off", "✕ Off target")
+    return f'<span class="pill {cls}">{mark}</span><span class="kpi-target">{target_text}</span>'
+
+
+def tile(label: str, value: str, delta: str | None, inverse: bool, note: str) -> str:
+    chip = ""
+    if delta:
+        up = delta.startswith("+")
+        good = (not up) if inverse else up
+        chip = f'<span class="delta {"good" if good else "bad"}">{"▲" if up else "▼"} {delta.lstrip("+-−")}</span>'
+    return (
+        f'<div class="kpi"><div class="kpi-label">{label}</div>'
+        f'<div class="kpi-row"><span class="kpi-value">{value}</span>{chip}</div>'
+        f'<div class="kpi-note">{note}</div></div>'
+    )
 
 
 # ---------------------------------------------------------------- header + filters
-st.title("Customer service operations report")
+st.title("Customer service operations")
 
 try:
     first_day, last_day = cached("date_bounds")
@@ -137,10 +165,11 @@ prev_end = start - timedelta(days=1)
 prev_start = prev_end - timedelta(days=span - 1)
 has_previous = prev_start >= first_day
 
-st.caption(
-    f"Period {start:%d %b %Y} - {end:%d %b %Y} ({span} days)"
-    + (f", compared with {prev_start:%d %b} - {prev_end:%d %b %Y}" if has_previous else "")
-    + f" · data through {last_day:%d %b %Y}"
+st.markdown(
+    f'<div class="page-sub">{start:%d %b %Y} – {end:%d %b %Y} · {span} days'
+    + (f" · compared with {prev_start:%d %b} – {prev_end:%d %b %Y}" if has_previous else "")
+    + f" · data through {last_day:%d %b %Y}</div>",
+    unsafe_allow_html=True,
 )
 
 cur = cached("kpis", start, end, skills)
@@ -149,12 +178,12 @@ prev = cached("kpis", prev_start, prev_end, skills) if has_previous else {}
 # ---------------------------------------------------------------- KPI cards
 cards = [
     (
-        "Tickets created", num(cur["created"]), delta_relative(cur["created"], prev.get("created")), False,
-        f"Previous period  \n{num(prev.get('created'))}",
+        "Created", num(cur["created"]), delta_relative(cur["created"], prev.get("created")), False,
+        f'<span class="kpi-target">Previous {num(prev.get("created"))}</span>',
     ),
     (
-        "Tickets closed", num(cur["closed"]), delta_relative(cur["closed"], prev.get("closed")), False,
-        f"Previous period  \n{num(prev.get('closed'))}",
+        "Closed", num(cur["closed"]), delta_relative(cur["closed"], prev.get("closed")), False,
+        f'<span class="kpi-target">Previous {num(prev.get("closed"))}</span>',
     ),
     (
         "CPH", num(cur["cph"], 1), delta_relative(cur["cph"], prev.get("cph")), False,
@@ -169,30 +198,24 @@ cards = [
         status(None if missing(cur["csat"]) else cur["csat"] >= t_csat, f"≥ {t_csat:.0%}"),
     ),
     (
-        "First-contact resolution", pct(cur["fcr"]), delta_points(cur["fcr"], prev.get("fcr")), False,
+        "FCR", pct(cur["fcr"]), delta_points(cur["fcr"], prev.get("fcr")), False,
         status(None if missing(cur["fcr"]) else cur["fcr"] >= t_fcr, f"≥ {t_fcr:.0%}"),
     ),
     (
-        "Resolved within 24h", pct(cur["resolved_24h"]), delta_points(cur["resolved_24h"], prev.get("resolved_24h")), False,
+        "Resolved 24h", pct(cur["resolved_24h"]), delta_points(cur["resolved_24h"], prev.get("resolved_24h")), False,
         status(None if missing(cur["resolved_24h"]) else cur["resolved_24h"] >= t_res, f"≥ {t_res:.0%}"),
     ),
     (
-        "First response (min)", num(cur["first_response_min"], 1),
+        "1st response (min)", num(cur["first_response_min"], 1),
         delta_units("min")(cur["first_response_min"], prev.get("first_response_min")), True,
         status(None if missing(cur["first_response_min"]) else cur["first_response_min"] <= t_frt, f"≤ {t_frt:.1f} min"),
     ),
     (
-        "On-time attendance", pct(cur["on_time"]), delta_points(cur["on_time"], prev.get("on_time")), False,
+        "On-time", pct(cur["on_time"]), delta_points(cur["on_time"], prev.get("on_time")), False,
         status(None if missing(cur["on_time"]) else cur["on_time"] >= t_ontime, f"≥ {t_ontime:.0%}"),
     ),
 ]
-for row in (cards[:5], cards[5:]):
-    columns = st.columns(len(row))
-    for column, (label, value, delta, inverse, note) in zip(columns, row):
-        with column, st.container(border=True):
-            st.metric(label, value, delta, delta_color="inverse" if inverse else "normal")
-            if note:
-                st.caption(note)
+st.markdown('<div class="kpis">' + "".join(tile(*card) for card in cards) + "</div>", unsafe_allow_html=True)
 
 SEGMENTS = ["IM", "Ticket"]
 GROUPS = cached("skill_groups")
@@ -296,8 +319,8 @@ with tab_prod:
             )
 
         hours = complete_weeks(ts(cached("weekly_hours", start, end, skills), "week_start"), "week_start", start, end)
-        hours = hours.rename(columns={"busy": "Busy", "idle": "Idle while online", "non_production": "Breaks, training, meetings"})
-        order = ["Busy", "Idle while online", "Breaks, training, meetings"]
+        hours = hours.rename(columns={"busy": "Busy", "idle": "Waiting or idle", "non_production": "Breaks, training, meetings"})
+        order = ["Busy", "Waiting or idle", "Breaks, training, meetings"]
         long = hours.melt("week_start", order, var_name="series", value_name="hours")
         st.subheader("Where paid time goes (hours per week)")
         st.altair_chart(
