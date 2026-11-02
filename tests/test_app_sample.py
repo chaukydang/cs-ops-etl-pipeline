@@ -1,5 +1,6 @@
 """The dashboard in demo mode: no database, only the bundled sample CSVs."""
 
+import re
 from pathlib import Path
 
 import pytest
@@ -8,6 +9,13 @@ pytest.importorskip("streamlit")
 pytest.importorskip("duckdb")
 
 APP = Path(__file__).resolve().parents[1] / "app" / "streamlit_app.py"
+
+
+def kpis(at) -> dict[str, str]:
+    """KPI tiles are HTML in one markdown block: label -> value."""
+    html = "".join(m.value for m in at.markdown)
+    found = re.findall(r'kpi-label">([^<]+)</div><div class="kpi-row"><span class="kpi-value">([^<]+)<', html)
+    return {label: value for label, value in found}
 
 
 @pytest.fixture(autouse=True)
@@ -22,11 +30,11 @@ def test_demo_dashboard_renders_with_numbers():
     at = AppTest.from_file(str(APP), default_timeout=90).run()
 
     assert not at.exception, [e.value for e in at.exception]
-    values = {m.label: m.value for m in at.metric}
-    for label in ("Tickets created", "Tickets closed", "CPH", "Occupancy", "CSAT", "First-contact resolution",
-                  "Resolved within 24h", "First response (min)", "On-time attendance"):
+    values = kpis(at)
+    for label in ("Created", "Closed", "CPH", "Occupancy", "CSAT", "FCR",
+                  "Resolved 24h", "1st response (min)", "On-time"):
         assert values[label] != "-", label
-    assert values["Tickets closed"] not in ("-", "0")
+    assert values["Closed"] not in ("-", "0")
     # the sample is labelled, quietly, in the footer
     assert any("sample dataset" in c.value for c in at.caption)
 
@@ -35,14 +43,14 @@ def test_skill_group_filter_changes_the_numbers():
     from streamlit.testing.v1 import AppTest
 
     at = AppTest.from_file(str(APP), default_timeout=90).run()
-    before = {m.label: m.value for m in at.metric}
+    before = kpis(at)
 
     group = at.sidebar.multiselect[0].options[0]
     at.sidebar.multiselect[0].select(group).run()
-    after = {m.label: m.value for m in at.metric}
+    after = kpis(at)
 
     assert not at.exception
-    assert after["Tickets closed"] != before["Tickets closed"]
+    assert after["Closed"] != before["Closed"]
 
 
 def test_queries_match_the_csv_files():

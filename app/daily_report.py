@@ -77,8 +77,10 @@ def render(values: pd.DataFrame, status: pd.DataFrame, group: str, end: date):
         for col in values.columns:
             v = values.loc[key, col]
             text.loc[key, col] = "-" if v is None or v != v else f"{ICONS[status.loc[key, col]]} {fmt.format(v)}"
-    text.index = [f"{METRICS[k][0]}  (target {_target_text(k, group, end)})" for k in values.index]
+    text.insert(0, "Target", [_target_text(k, group, end) for k in values.index])
+    text.index = [METRICS[k][0] for k in values.index]
     styles = status.copy()
+    styles.insert(0, "Target", "none")
     styles.index = text.index
     styles = styles.apply(lambda col: col.map(COLORS))
     return text.style.apply(lambda _: styles, axis=None)
