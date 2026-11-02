@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import charts  # noqa: E402
 import daily_report  # noqa: E402
+import labels  # noqa: E402
 import queries as data  # noqa: E402
 
 st.set_page_config(page_title="CS Operations Report", layout="wide")
@@ -117,7 +118,9 @@ with st.sidebar:
     default_start = max(first_day, default_end - timedelta(days=27))
     picked = st.date_input("Period", (default_start, default_end), min_value=first_day, max_value=last_day)
     start, end = (picked if len(picked) == 2 else (picked[0], picked[0]))
-    skills = st.multiselect("Skill group", cached("skill_groups"))
+    picked_audience = st.multiselect("User type", labels.AUDIENCES)
+    picked_channel = st.multiselect("Channel", labels.CHANNELS)
+    skills = labels.select(cached("skill_groups"), picked_audience, picked_channel)
 
     with st.expander("Targets"):
         t_csat = st.number_input("CSAT, at least (%)", 0.0, 100.0, 85.0, 0.5) / 100
@@ -238,7 +241,7 @@ with tab_overview:
         else:
             total = backlog.groupby("day", as_index=False)["open_tickets"].sum()
             st.altair_chart(charts.line(total, "day", "open_tickets", zero=True), width="stretch")
-            st.caption("All skill groups; the backlog is not split by skill group in the source.")
+            st.caption("All user types and channels; the backlog is not split by them in the source.")
 
     weekly_q = complete_weeks(ts(cached("weekly_quality", start, end, skills), "week_start"), "week_start", start, end)
     weekly_p = complete_weeks(ts(cached("weekly_productivity", start, end, skills), "week_start"), "week_start", start, end)
@@ -357,15 +360,16 @@ with tab_quality:
                 width="stretch",
             )
 
-    st.subheader("By skill group")
+    st.subheader("By user type and channel")
     by_group = cached("quality_by_group", start, end)
+    by_group["skill_group"] = by_group["skill_group"].map(labels.display)
     if not by_group.empty:
         st.dataframe(
             by_group,
             hide_index=True,
             width="stretch",
             column_config={
-                "skill_group": "Skill group",
+                "skill_group": "Segment",
                 "tickets": st.column_config.NumberColumn("Tickets", format="localized", width="small"),
                 "csat": st.column_config.ProgressColumn("CSAT", format="percent", min_value=0, max_value=1),
                 "fcr": st.column_config.ProgressColumn("FCR", format="percent", min_value=0, max_value=1),
@@ -428,13 +432,15 @@ with tab_capacity:
             fte["series"] = fte["series"].map({"required_fte": "Required", "scheduled_fte": "Scheduled"})
             st.altair_chart(charts.line(fte, "day", "fte", series="series", order=["Required", "Scheduled"], fmt=",.1f"), width="stretch")
 
-        st.subheader("By skill group")
+        st.subheader("By user type and channel")
+        by_forecast = cached("forecast_by_group", start, end)
+        by_forecast["skill_group"] = by_forecast["skill_group"].map(labels.display)
         st.dataframe(
-            cached("forecast_by_group", start, end),
+            by_forecast,
             hide_index=True,
             width="stretch",
             column_config={
-                "skill_group": "Skill group",
+                "skill_group": "Segment",
                 "forecast": st.column_config.NumberColumn("Forecast", format="localized"),
                 "actual": st.column_config.NumberColumn("Actual", format="localized"),
                 "wape": st.column_config.NumberColumn("Error (WAPE)", format="percent"),
