@@ -150,7 +150,7 @@ streamlit run app/streamlit_app.py          # uses the DB_* variables
 # or: docker compose up app                 # http://localhost:8501
 ```
 
-Without `DB_HOST` the app starts in **sample mode** on bundled synthetic data, so it runs anywhere with no database and can be deployed to Streamlit Community Cloud. See [docs/demo.md](docs/demo.md).
+Without `DB_HOST` the app starts in **sample mode** on bundled synthetic data, so it runs anywhere with no database and this repository can be added to Streamlit Community Cloud as it is (main file `streamlit_app.py`). See [docs/demo.md](docs/demo.md).
 
 ## Try it without real data
 

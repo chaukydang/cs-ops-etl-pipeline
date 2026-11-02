@@ -15,14 +15,16 @@ streamlit run app/streamlit_app.py
 
 Streamlit Community Cloud deploys an app straight from a GitHub repository.
 
-**Option A: this repository**
+**Option A: this repository as it is (simplest)**
 
 1. Open <https://share.streamlit.io>, sign in with GitHub and allow access to the repository (a private repository works once you grant access).
-2. *Create app*: repository `chaukydang/cs-ops-etl-pipeline`, branch `main`, main file `app/streamlit_app.py`.
-3. In *Advanced settings* pick Python 3.12. Dependencies are read from `app/requirements.txt`; if the build installs the root `requirements.txt` instead (it pulls in Selenium and others), use option B.
-4. Do not add any secrets. Without `DB_HOST` the app stays in demo mode.
+2. *Create app*: repository `chaukydang/cs-ops-etl-pipeline`, branch `main`, main file `streamlit_app.py` (the default), Python 3.12 or newer. Deploy.
 
-**Option B: a small separate repository (recommended for a public link)**
+That is all: `streamlit_app.py` at the repository root starts the dashboard, `requirements.txt` at the root installs what it needs, and the sample data is in the repository. Do not add any secrets; without `DB_HOST` the app stays in sample mode. This was tested from a clean checkout of the repository in a fresh virtual environment with only the root `requirements.txt` installed.
+
+Streamlit Community Cloud only runs the dashboard. The pipeline itself (the browser login to the BI dashboard, PostgreSQL or BigQuery, dbt, the Prefect schedule) needs a machine of its own, so on Streamlit the report always runs on the bundled sample data.
+
+**Option B: a small separate repository (for a public link that exposes nothing else)**
 
 ```bash
 scripts/export_demo_app.sh ../cs-ops-dashboard-demo
