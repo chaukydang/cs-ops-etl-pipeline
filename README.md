@@ -1,6 +1,6 @@
 # cs-ops-etl-pipeline
 
-Daily ETL for the customer service operations reports. It pulls data from three places, cleans it up, and loads it into PostgreSQL so the dashboards read from one database instead of a pile of exports.
+Daily ELT for the TikTok Shop customer service operations reports. It pulls data from the BI dashboard and from Lark, keeps a Parquet archive, loads the raw data into **BigQuery or PostgreSQL**, models it with dbt (staging, dimensions, facts, reconciliation tests) and serves a dashboard, with monitoring and alerts around every step.
 
 ```mermaid
 flowchart LR
@@ -16,9 +16,9 @@ flowchart LR
 
     Q{archive stage<br/>quality checks}
     P[(Parquet archive<br/>data/archive, optional S3/MinIO)]
-    R[(PostgreSQL<br/>raw tables, all TEXT)]
-    S[dbt staging<br/>typed and cleaned views]
-    M[dbt marts<br/>dims and facts]
+    R[(BigQuery or PostgreSQL<br/>raw tables, all text)]
+    S[dbt staging<br/>typed, cleaned, deduplicated]
+    M[dbt marts<br/>dims and facts<br/>reconciliation tests]
     H[Spark job<br/>deduplicated history]
     B[Streamlit dashboard]
     O[monitor<br/>freshness and run history]
@@ -35,6 +35,22 @@ flowchart LR
 ```
 
 More diagrams (daily schedule, how one report is loaded, backfill, dbt layers) in [docs/workflow.md](docs/workflow.md).
+
+## What this covers
+
+| Area | In this repo |
+|------|--------------|
+| ETL / ELT pipelines | Two source systems (the Aeolus export API with browser-captured token, the Lark Open API for Sheets and Base), Parquet archive, loads into BigQuery or PostgreSQL, dbt transformations. Adding a source is a JSON config plus, for a new API, one client. |
+| Warehouse and modelling | Raw / staging / marts layers, star schema with defined grain and keys, incremental facts, partitioned and clustered BigQuery tables. See [docs/data-model.md](docs/data-model.md). |
+| Duplicates | Handled in staging (latest load wins per business key, exact copies collapsed); loader replaces whole date windows so it cannot create them. |
+| Data quality and reconciliation | Loader guards, dbt tests (keys, grain, relationships, ranges), raw-to-staging and mart-to-staging reconciliation, source freshness, row-limit detection. |
+| Incident handling | [docs/runbook.md](docs/runbook.md): symptom, cause, action. |
+| Automation and monitoring | Prefect flow (retries, timeouts, dependency order), `pipeline_runs` history, freshness monitor, Lark alerts. |
+| Cost and performance | Partition pruning, clustering, `insert_overwrite`, per-query byte cap, dry-run estimate. See [docs/bigquery.md](docs/bigquery.md). |
+| Security | Secrets handling, least-privilege IAM proposal, hashed agent keys. See [docs/security.md](docs/security.md). |
+| Documentation and code management | Workflow diagrams, runbook, data model, CI (lint, tests, warehouse build, BigQuery SQL check). |
+
+Scope: the sources are the customer service reports above. There are no e-commerce platform, POS, OMS/WMS or accounting connectors here. BigQuery support is tested with a fake client and offline SQL rendering, not yet against a real project (details in [docs/bigquery.md](docs/bigquery.md)).
 
 Stages, each runnable on its own:
 
@@ -89,6 +105,10 @@ Check the database credentials without running anything else:
 ```bash
 python check_db_connection.py
 ```
+
+## Choosing the warehouse
+
+PostgreSQL is the default. For BigQuery set `WAREHOUSE=bigquery` (plus `BQ_PROJECT`, `BQ_DATASET`, optionally `BQ_LOCATION` and a `BQ_MAX_BYTES_BILLED` cap) and use the same commands; tables are partitioned by date and clustered, windows are replaced in one transaction, and dbt runs with `--target bigquery`. Setup, cost notes and what has been tested: [docs/bigquery.md](docs/bigquery.md).
 
 ## Incremental loading
 
@@ -175,7 +195,7 @@ raw (schema Service) -> staging (views, typed + cleaned) -> marts (tables)
 
 `fct_productivity_daily`, `fct_attendance_daily`, `fct_tickets_daily` and `fct_csat_daily` are incremental: each run rebuilds the last `lookback_days` days (default 45, `--vars '{lookback_days: 60}'` to change) and leaves older history alone. Run `dbt build --full-refresh` after a backfill or when you change a model. A group that disappears from the source inside the lookback window stays in the fact until the next full refresh.
 
-Tests cover keys, grain uniqueness, relationships between facts and dimensions, and value ranges. Connection settings come from the same `DB_*` variables as the pipeline. Marts are written to `staging` / `marts` schemas in the same database.
+Staging removes duplicates (latest load wins per ticket, exact copies collapsed). Tests cover keys, grain uniqueness, relationships between facts and dimensions and value ranges, plus reconciliation (`dbt/tests/reconciliation`): facts must match staging totals, no more than 1% of raw rows may disappear in staging, and duplicates in raw are reported. `dbt source freshness` warns after 2 days without a load. The models run on PostgreSQL and BigQuery through adapter-dispatched macros (`dbt/macros`). Connection settings come from the same `DB_*` variables as the pipeline. Marts are written to `staging` / `marts` schemas in the same database.
 
 ## Long-term history (Spark)
 
@@ -246,10 +266,12 @@ modules/
   storage/                  quality checks, Parquet archive, S3 upload
   database/                 connection, CSV profiling, incremental/replace loading
   monitoring/               run history, freshness checks
+  warehouse/                BigQuery loader and runner
 spark/                      history rebuild job (PySpark)
 dbt/                        staging + mart models, macros, tests
 app/                        Streamlit dashboard
-scripts/                    synthetic data generator
+scripts/                    synthetic data generator, BigQuery SQL check
+docs/                       workflow, data model, runbook, security, BigQuery
 flows/                      Prefect flow
 Dockerfile (pipeline + Prefect), Dockerfile.app (dashboard), docker-compose.yml
 tests/                      pytest (tests/integration needs PostgreSQL)
@@ -272,7 +294,7 @@ pytest
 
 dbt models are exercised by the `warehouse` CI job (see above).
 
-`tests/integration` runs against a real PostgreSQL when `DB_HOST` is set (otherwise skipped). The unit tests cover the pure helpers (env/config parsing, date-window calculation, header and identifier normalisation) and the Parquet archive and quality checks. The Prefect flow is tested with the stage runner replaced by a recorder (ordering and failure propagation) plus a real-subprocess test of the runner. The download and database stages need real credentials and are not covered.
+`tests/integration` runs against a real PostgreSQL when `DB_HOST` is set (otherwise skipped). The BigQuery loader is tested against a recording fake client, and `scripts/check_bigquery_sql.py` renders every dbt model for BigQuery offline and checks the SQL. The unit tests cover the pure helpers (env/config parsing, date-window calculation, header and identifier normalisation) and the Parquet archive and quality checks. The Prefect flow is tested with the stage runner replaced by a recorder (ordering and failure propagation) plus a real-subprocess test of the runner. The download and database stages need real credentials and are not covered.
 
 ## License
 

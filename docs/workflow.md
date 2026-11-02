@@ -18,9 +18,9 @@ flowchart LR
 
     Q{archive stage<br/>quality checks}
     P[(Parquet archive<br/>data/archive, optional S3/MinIO)]
-    R[(PostgreSQL<br/>raw tables, all TEXT)]
-    S[dbt staging<br/>typed and cleaned views]
-    M[dbt marts<br/>dims and facts]
+    R[(BigQuery or PostgreSQL<br/>raw tables, all text)]
+    S[dbt staging<br/>typed, cleaned, deduplicated]
+    M[dbt marts<br/>dims and facts<br/>reconciliation tests]
     H[Spark job<br/>deduplicated history]
     B[Streamlit dashboard]
     O[monitor<br/>freshness and run history]
