@@ -12,6 +12,6 @@ select
     {{ to_num('resolution_hours') }}                   as resolution_hrs,
     ({{ to_num('first_contact_resolution') }} = 1)     as is_fcr,
     ({{ to_num('official_ticket_24h_resolution_rate_24h') }} = 1) as is_resolved_24h
-from {{ source('raw', 'tickets') }}
+from {{ dedupe_by_key(source('raw', 'tickets'), clean_text('ticket_id_id')) }} as t
 where {{ to_date('create_date') }} is not null
   and {{ clean_text('ticket_id_id') }} is not null

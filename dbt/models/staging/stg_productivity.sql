@@ -19,6 +19,6 @@ select
     coalesce({{ to_num('meeting_hrs') }}, 0)          as meeting_hrs,
     coalesce({{ to_num('other_hrs') }}, 0)            as other_hrs,
     coalesce({{ to_num('productivity_numerator_hrs') }}, 0) as productivity_hrs
-from {{ source('raw', 'productivity_daily') }}
+from {{ dedupe_exact(source('raw', 'productivity_daily')) }} as p
 where {{ to_date('business_date') }} is not null
   and {{ clean_text('agent_email') }} is not null

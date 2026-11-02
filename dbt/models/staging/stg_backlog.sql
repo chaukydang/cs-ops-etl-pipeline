@@ -12,5 +12,5 @@ select
     coalesce({{ to_num('pending_duration_over_72h_ticket_cnt') }}, 0)
       + coalesce({{ to_num('onhold_duration_over_72h_ticket_cnt') }}, 0)     as aged_over_72h,
     coalesce({{ to_num('close_cnt') }}, 0)             as closed
-from {{ source('raw', 'backlog_daily') }}
+from {{ dedupe_exact(source('raw', 'backlog_daily')) }} as b
 where {{ to_date('date') }} is not null

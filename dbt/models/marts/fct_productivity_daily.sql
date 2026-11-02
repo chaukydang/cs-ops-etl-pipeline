@@ -1,9 +1,14 @@
-{{ config(materialized='incremental', unique_key='row_key', incremental_strategy='delete+insert') }}
+{{ config(
+    materialized='incremental',
+    unique_key='row_key',
+    incremental_strategy=incremental_strategy(),
+    partition_by={'field': 'business_date', 'data_type': 'date'},
+    cluster_by=['agent_key']
+) }}
 
 select
-    md5(agent_email || '|' || business_date::text || '|'
-        || coalesce(segment, '') || '|' || coalesce(skill_group, '')) as row_key,
-    md5(agent_email)                                       as agent_key,
+    {{ hash_key("agent_email || '|' || " ~ as_text('business_date') ~ " || '|' || coalesce(segment, '') || '|' || coalesce(skill_group, '')") }} as row_key,
+    {{ hash_key('agent_email') }}                          as agent_key,
     business_date,
     segment,
     skill_group,

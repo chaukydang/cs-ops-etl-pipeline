@@ -8,14 +8,17 @@ with bounds as (
             (select max(business_date) from {{ ref('stg_productivity') }}),
             (select max(create_date) from {{ ref('stg_tickets') }})
         ) as last_day
+),
+days as (
+    select {{ as_date('d') }} as date_day
+    from bounds, {{ date_series('bounds.first_day', 'bounds.last_day') }}
 )
 select
-    d::date                                         as date_day,
-    {{ week_start_sunday('d::date') }}              as week_start,
-    date_trunc('month', d)::date                    as month_start,
-    extract(year from d)::int                       as year,
-    extract(week from d)::int                       as iso_week,
-    to_char(d, 'Dy')                                as day_name,
-    extract(dow from d) in (0, 6)                   as is_weekend
-from bounds,
-     generate_series(bounds.first_day, bounds.last_day, interval '1 day') as d
+    date_day,
+    {{ week_start_sunday('date_day') }}  as week_start,
+    {{ month_start('date_day') }}        as month_start,
+    extract(year from date_day)          as year,
+    {{ iso_week('date_day') }}           as iso_week,
+    {{ day_name('date_day') }}           as day_name,
+    {{ day_of_week('date_day') }} in (0, 6) as is_weekend
+from days

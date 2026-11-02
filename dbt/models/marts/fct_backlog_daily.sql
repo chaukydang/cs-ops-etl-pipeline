@@ -1,4 +1,5 @@
 select
+    {{ hash_key(as_text('backlog_date') ~ " || '|' || coalesce(user_type, '')") }} as row_key,
     backlog_date,
     user_type,
     backlog_rate,

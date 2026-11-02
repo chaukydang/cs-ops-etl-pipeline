@@ -5,8 +5,9 @@
 #}
 {% macro recent_window(date_col) -%}
     {%- if is_incremental() %}
-    and {{ date_col }} >= (
-        select coalesce(max({{ date_col }}), date '1900-01-01') from {{ this }}
-    ) - {{ var('lookback_days', 45) }}
+    and {{ date_col }} >= {{ date_minus_days(
+        "(select coalesce(max(" ~ date_col ~ "), date '1900-01-01') from " ~ this ~ ")",
+        var('lookback_days', 45)
+    ) }}
     {%- endif %}
 {%- endmacro %}

@@ -66,16 +66,16 @@ models:
               max_value: 1
 
   - name: fct_backlog_daily
-    tests:
-      - unique:
-          column_name: "backlog_date::text || user_type"
+    columns:
+      - name: row_key
+        tests: [unique, not_null]
 
   - name: fct_forecast_vs_actual
-    tests:
-      - unique:
-          column_name: "business_date::text || skill_group"
+    columns:
+      - name: row_key
+        tests: [unique, not_null]
 
   - name: mart_agent_weekly
-    tests:
-      - unique:
-          column_name: "agent_key || week_start::text"
+    columns:
+      - name: row_key
+        tests: [unique, not_null]

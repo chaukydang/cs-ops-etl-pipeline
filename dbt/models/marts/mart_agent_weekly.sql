@@ -22,15 +22,16 @@ att as (
 ),
 csat as (
     select
-        md5(agent_email)       as agent_key,
+        {{ hash_key('agent_email') }} as agent_key,
         {{ week_start_sunday('survey_date') }} as week_start,
         count(*)               as csat_responses,
-        count(*) filter (where score >= 4) as csat_satisfied
+        {{ count_if('score >= 4') }} as csat_satisfied
     from {{ ref('stg_csat') }}
     where agent_email is not null
     group by 1, 2
 )
 select
+    {{ hash_key("prod.agent_key || '|' || " ~ as_text('prod.week_start')) }} as row_key,
     prod.agent_key,
     prod.week_start,
     prod.closed,
@@ -42,7 +43,7 @@ select
     att.late_shifts,
     1 - att.late_shifts / nullif(att.shifts, 0)      as on_time_rate,
     csat.csat_responses,
-    csat.csat_satisfied / nullif(csat.csat_responses, 0)::numeric as csat_pct
+    {{ ratio('csat.csat_satisfied', 'csat.csat_responses') }} as csat_pct
 from prod
 left join att  using (agent_key, week_start)
 left join csat using (agent_key, week_start)

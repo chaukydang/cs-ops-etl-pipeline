@@ -1,8 +1,14 @@
-{{ config(materialized='incremental', unique_key='row_key', incremental_strategy='delete+insert') }}
+{{ config(
+    materialized='incremental',
+    unique_key='row_key',
+    incremental_strategy=incremental_strategy(),
+    partition_by={'field': 'schedule_date', 'data_type': 'date'},
+    cluster_by=['agent_key']
+) }}
 
 select
-    md5(agent_email || '|' || schedule_date::text)  as row_key,
-    md5(agent_email)              as agent_key,
+    {{ hash_key("agent_email || '|' || " ~ as_text('schedule_date')) }} as row_key,
+    {{ hash_key('agent_email') }} as agent_key,
     schedule_date,
     sum(attendance_count)         as attendance_count,
     sum(late_count)               as late_count,

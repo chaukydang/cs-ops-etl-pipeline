@@ -1,0 +1,30 @@
+version: 2
+
+models:
+  - name: stg_tickets
+    description: One row per ticket (duplicates removed, latest load wins).
+    columns:
+      - name: ticket_id
+        tests: [unique, not_null]
+      - name: create_date
+        tests: [not_null]
+
+  - name: stg_csat
+    description: One row per ticket and survey date (duplicates removed).
+    columns:
+      - name: ticket_id
+        tests: [not_null]
+      - name: score
+        tests:
+          - dbt_utils_free_range:
+              min_value: 1
+              max_value: 5
+              config: {severity: warn}
+
+  - name: stg_productivity
+    description: Exact duplicate rows removed.
+    columns:
+      - name: agent_email
+        tests: [not_null]
+      - name: business_date
+        tests: [not_null]

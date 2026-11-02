@@ -1,4 +1,5 @@
 select
+    {{ hash_key(as_text('business_date') ~ " || '|' || coalesce(skill_group, '')") }} as row_key,
     business_date,
     skill_group,
     forecast_traffic,

@@ -17,7 +17,7 @@ with ranked as (
     from {{ ref('stg_productivity') }}
 )
 select
-    md5(agent_email)    as agent_key,
+    {{ hash_key('agent_email') }}    as agent_key,
     agent_email,
     department,
     tier,
