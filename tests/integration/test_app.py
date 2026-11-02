@@ -16,7 +16,7 @@ def marts_available():
         pytest.skip("DB_HOST not set")
     import psycopg
 
-    from app import data
+    from app import queries as data
 
     try:
         with data.connect() as connection, connection.cursor() as cursor:

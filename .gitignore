@@ -35,3 +35,6 @@ dbt/target/
 dbt/logs/
 dbt/dbt_packages/
 logs/
+
+# sample data for the demo app is committed on purpose
+!app/sample_data/*.csv

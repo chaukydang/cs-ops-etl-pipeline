@@ -1,16 +1,54 @@
-"""Queries behind the dashboard. Everything reads from the dbt `marts` schema."""
+"""Queries behind the dashboard. Everything reads from the dbt `marts` schema.
+
+Two backends, same SQL:
+
+- PostgreSQL, when the DB_* variables are set (the real warehouse);
+- sample mode otherwise (or with SAMPLE_DATA=1): the CSV files in
+  `sample_data/` are loaded into an in-memory DuckDB, so the app runs anywhere
+  without a database, for example on Streamlit Community Cloud.
+"""
 
 from __future__ import annotations
 
 import os
+import re
+import threading
 from datetime import date
 from decimal import Decimal
+from pathlib import Path
 
 import pandas as pd
-import psycopg
+
+SAMPLE_DIR = Path(__file__).resolve().parent / "sample_data"
+_sample_lock = threading.Lock()
+_sample_connection = None
+
+
+def sample_mode() -> bool:
+    return os.getenv("SAMPLE_DATA") == "1" or not os.getenv("DB_HOST")
+
+
+def _sample():
+    """One in-memory DuckDB per process, with the marts loaded from the sample CSVs."""
+    global _sample_connection
+    with _sample_lock:
+        if _sample_connection is None:
+            import duckdb
+
+            connection = duckdb.connect()
+            connection.execute("create schema marts")
+            for csv_file in sorted(SAMPLE_DIR.glob("*.csv")):
+                connection.execute(
+                    f"create table marts.{csv_file.stem} as "
+                    f"select * from read_csv_auto('{csv_file.as_posix()}')"
+                )
+            _sample_connection = connection
+        return _sample_connection.cursor()
 
 
 def connect():
+    import psycopg
+
     return psycopg.connect(
         host=os.environ["DB_HOST"],
         port=int(os.getenv("DB_PORT", "5432")),
@@ -23,6 +61,21 @@ def connect():
 
 
 def query(sql: str, params: tuple | dict | None = None) -> pd.DataFrame:
+    if sample_mode():
+        # psycopg style %(name)s -> DuckDB style $name
+        cursor = _sample()
+        used = set(re.findall(r"%\((\w+)\)s", sql))
+        # psycopg ignores parameters a statement does not use; DuckDB raises
+        cursor.execute(
+            re.sub(r"%\((\w+)\)s", r"$\1", sql),
+            {k: v for k, v in (params or {}).items() if k in used},
+        )
+        frame = cursor.fetchdf()
+        for column in frame.columns:
+            if str(frame[column].dtype).startswith("datetime64"):
+                frame[column] = frame[column].dt.date
+        return frame
+
     with connect() as connection, connection.cursor() as cursor:
         cursor.execute(sql, params)
         columns = [c.name for c in cursor.description]
@@ -51,7 +104,9 @@ def skill_groups() -> list[str]:
 def _skill_filter(skills: list[str]) -> tuple[str, dict]:
     if not skills:
         return "", {}
-    return "and skill_group = any(%(skills)s)", {"skills": skills}
+    names = {f"skill{i}": name for i, name in enumerate(skills)}
+    marks = ", ".join(f"%({key})s" for key in names)
+    return f"and skill_group in ({marks})", names
 
 
 def kpis(start: date, end: date, skills: list[str]) -> dict:
@@ -195,6 +250,8 @@ def weeks() -> list[date]:
 
 
 def recent_runs(limit: int = 30) -> pd.DataFrame:
+    if sample_mode():
+        raise RuntimeError("no run history in sample mode")
     schema = os.getenv("DB_SCHEMA", "Service")
     return query(
         f'select finished_at, stage, source, status, rows, duration_s, error '

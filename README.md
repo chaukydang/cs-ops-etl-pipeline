@@ -150,6 +150,8 @@ streamlit run app/streamlit_app.py          # uses the DB_* variables
 # or: docker compose up app                 # http://localhost:8501
 ```
 
+Without `DB_HOST` the app starts in **demo mode** on bundled synthetic data, so it runs anywhere with no database and can be deployed to Streamlit Community Cloud. See [docs/demo.md](docs/demo.md).
+
 ## Try it without real data
 
 `scripts/make_demo_data.py` writes synthetic CSVs with the same columns as the real dashboard exports, so everything after the download step can be run locally:
@@ -269,7 +271,7 @@ modules/
   warehouse/                BigQuery loader and runner
 spark/                      history rebuild job (PySpark)
 dbt/                        staging + mart models, macros, tests
-app/                        Streamlit dashboard
+app/                        Streamlit dashboard (PostgreSQL or bundled sample data)
 scripts/                    synthetic data generator, BigQuery SQL check
 docs/                       workflow, data model, runbook, security, BigQuery
 flows/                      Prefect flow
