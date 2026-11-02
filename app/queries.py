@@ -109,100 +109,221 @@ def _skill_filter(skills: list[str]) -> tuple[str, dict]:
     return f"and skill_group in ({marks})", names
 
 
-def kpis(start: date, end: date, skills: list[str]) -> dict:
+def _params(start: date, end: date, skills: list[str]) -> tuple[str, dict]:
     clause, extra = _skill_filter(skills)
-    params = {"start": start, "end": end, **extra}
+    return clause, {"start": start, "end": end, **extra}
+
+
+def kpis(start: date, end: date, skills: list[str]) -> dict:
+    clause, params = _params(start, end, skills)
 
     prod = query(
         f"""
         select sum(closed) as closed,
-               sum(closed) / nullif(sum(productivity_hrs), 0) as cph,
-               sum(busy_hrs) / nullif(sum(online_hrs), 0)     as occupancy
+               sum(closed) * 1.0 / nullif(sum(productivity_hrs), 0) as cph,
+               sum(busy_hrs) * 1.0 / nullif(sum(online_hrs), 0)     as occupancy
         from marts.fct_productivity_daily
         where business_date between %(start)s and %(end)s {clause}
         """,
         params,
     ).iloc[0]
-    csat = query(
-        f"""
-        select sum(satisfied)::numeric / nullif(sum(responses), 0) as csat
-        from marts.fct_csat_daily
-        where survey_date between %(start)s and %(end)s {clause}
-        """,
-        params,
-    ).iloc[0]
     tickets = query(
         f"""
-        select sum(tickets) as tickets, sum(fcr_tickets)::numeric / nullif(sum(tickets), 0) as fcr
+        select sum(tickets) as created,
+               sum(fcr_tickets) * 1.0 / nullif(sum(tickets), 0) as fcr,
+               sum(resolved_24h_tickets) * 1.0 / nullif(sum(closed_tickets), 0) as resolved_24h,
+               sum(avg_first_response_hrs * tickets) * 60.0 / nullif(sum(tickets), 0) as first_response_min
         from marts.fct_tickets_daily
         where create_date between %(start)s and %(end)s {clause}
         """,
         params,
     ).iloc[0]
+    csat = query(
+        f"""
+        select sum(satisfied) * 1.0 / nullif(sum(responses), 0) as csat
+        from marts.fct_csat_daily
+        where survey_date between %(start)s and %(end)s {clause}
+        """,
+        params,
+    ).iloc[0]
     attendance = query(
         """
-        select 1 - sum(late_count) / nullif(sum(attendance_count), 0) as on_time
+        select 1 - sum(late_count) * 1.0 / nullif(sum(attendance_count), 0) as on_time
         from marts.fct_attendance_daily
         where schedule_date between %(start)s and %(end)s
         """,
         params,
     ).iloc[0]
     return {
+        "created": tickets["created"],
         "closed": prod["closed"],
         "cph": prod["cph"],
         "occupancy": prod["occupancy"],
         "csat": csat["csat"],
-        "tickets": tickets["tickets"],
         "fcr": tickets["fcr"],
+        "resolved_24h": tickets["resolved_24h"],
+        "first_response_min": tickets["first_response_min"],
         "on_time": attendance["on_time"],
     }
 
 
+def daily_flow(start: date, end: date, skills: list[str]) -> pd.DataFrame:
+    """Tickets created vs tickets closed by agents, per day."""
+    clause, params = _params(start, end, skills)
+    created = query(
+        f"""
+        select create_date as day, sum(tickets) as created
+        from marts.fct_tickets_daily
+        where create_date between %(start)s and %(end)s {clause}
+        group by 1
+        """,
+        params,
+    )
+    closed = query(
+        f"""
+        select business_date as day, sum(closed) as closed
+        from marts.fct_productivity_daily
+        where business_date between %(start)s and %(end)s {clause}
+        group by 1
+        """,
+        params,
+    )
+    return created.merge(closed, on="day", how="outer").sort_values("day").fillna(0)
+
+
 def weekly_productivity(start: date, end: date, skills: list[str]) -> pd.DataFrame:
-    clause, extra = _skill_filter(skills)
+    clause, params = _params(start, end, skills)
     return query(
         f"""
         select (business_date - extract(dow from business_date)::int) as week_start,
                segment,
-               sum(closed) / nullif(sum(productivity_hrs), 0) as cph
+               sum(closed) * 1.0 / nullif(sum(productivity_hrs), 0) as cph,
+               sum(busy_hrs) * 1.0 / nullif(sum(online_hrs), 0) as occupancy,
+               sum(closed) as closed,
+               sum(productivity_hrs) as productivity_hrs
         from marts.fct_productivity_daily
         where business_date between %(start)s and %(end)s {clause}
         group by 1, 2 order by 1
         """,
-        {"start": start, "end": end, **extra},
+        params,
     )
 
 
-def daily_tickets(start: date, end: date, skills: list[str]) -> pd.DataFrame:
-    clause, extra = _skill_filter(skills)
+PRODUCTIVITY_DIMENSIONS = {"tenure": "a.tenure", "tier": "a.tier", "team": "a.department"}
+
+
+def productivity_by(dimension: str, start: date, end: date, skills: list[str]) -> pd.DataFrame:
+    column = PRODUCTIVITY_DIMENSIONS[dimension]  # whitelist: never interpolate user input
+    clause, params = _params(start, end, skills)
+    clause = clause.replace("skill_group", "f.skill_group")
     return query(
         f"""
-        select create_date, sum(tickets) as tickets, sum(closed_tickets) as closed_tickets
-        from marts.fct_tickets_daily
-        where create_date between %(start)s and %(end)s {clause}
+        select {column} as {dimension},
+               count(distinct f.agent_key) as agents,
+               sum(f.closed) * 1.0 / nullif(sum(f.productivity_hrs), 0) as cph,
+               sum(f.busy_hrs) * 1.0 / nullif(sum(f.online_hrs), 0) as occupancy
+        from marts.fct_productivity_daily f
+        join marts.dim_agent a using (agent_key)
+        where f.business_date between %(start)s and %(end)s {clause}
         group by 1 order by 1
         """,
-        {"start": start, "end": end, **extra},
+        params,
+    )
+
+
+def weekly_hours(start: date, end: date, skills: list[str]) -> pd.DataFrame:
+    """Where paid time goes: busy, idle while online, and non-production time."""
+    clause, params = _params(start, end, skills)
+    return query(
+        f"""
+        select (business_date - extract(dow from business_date)::int) as week_start,
+               sum(busy_hrs) as busy,
+               sum(online_hrs) - sum(busy_hrs) as idle,
+               sum(non_production_hrs) as non_production
+        from marts.fct_productivity_daily
+        where business_date between %(start)s and %(end)s {clause}
+        group by 1 order by 1
+        """,
+        params,
+    )
+
+
+def weekly_quality(start: date, end: date, skills: list[str]) -> pd.DataFrame:
+    clause, params = _params(start, end, skills)
+    tickets = query(
+        f"""
+        select (create_date - extract(dow from create_date)::int) as week_start,
+               sum(fcr_tickets) * 1.0 / nullif(sum(tickets), 0) as fcr,
+               sum(resolved_24h_tickets) * 1.0 / nullif(sum(closed_tickets), 0) as resolved_24h
+        from marts.fct_tickets_daily
+        where create_date between %(start)s and %(end)s {clause}
+        group by 1
+        """,
+        params,
+    )
+    csat = query(
+        f"""
+        select (survey_date - extract(dow from survey_date)::int) as week_start,
+               sum(satisfied) * 1.0 / nullif(sum(responses), 0) as csat
+        from marts.fct_csat_daily
+        where survey_date between %(start)s and %(end)s {clause}
+        group by 1
+        """,
+        params,
+    )
+    return tickets.merge(csat, on="week_start", how="outer").sort_values("week_start")
+
+
+def quality_by_group(start: date, end: date) -> pd.DataFrame:
+    params = {"start": start, "end": end}
+    return query(
+        """
+        with t as (
+            select skill_group,
+                   sum(tickets) as tickets,
+                   sum(fcr_tickets) * 1.0 / nullif(sum(tickets), 0) as fcr,
+                   sum(resolved_24h_tickets) * 1.0 / nullif(sum(closed_tickets), 0) as resolved_24h,
+                   sum(avg_first_response_hrs * tickets) * 60.0 / nullif(sum(tickets), 0) as first_response_min,
+                   sum(avg_resolution_hrs * tickets) / nullif(sum(tickets), 0) as resolution_hrs
+            from marts.fct_tickets_daily
+            where create_date between %(start)s and %(end)s
+            group by 1
+        ), c as (
+            select skill_group,
+                   sum(responses) as responses,
+                   sum(satisfied) * 1.0 / nullif(sum(responses), 0) as csat
+            from marts.fct_csat_daily
+            where survey_date between %(start)s and %(end)s
+            group by 1
+        )
+        select t.skill_group, t.tickets, c.csat, t.fcr, t.resolved_24h,
+               t.first_response_min, t.resolution_hrs, c.responses
+        from t left join c using (skill_group)
+        order by t.skill_group
+        """,
+        params,
     )
 
 
 def daily_csat(start: date, end: date, skills: list[str]) -> pd.DataFrame:
-    clause, extra = _skill_filter(skills)
+    clause, params = _params(start, end, skills)
     return query(
         f"""
-        select survey_date, sum(satisfied)::numeric / nullif(sum(responses), 0) as csat_pct
+        select survey_date as day,
+               sum(satisfied) * 1.0 / nullif(sum(responses), 0) as csat,
+               sum(responses) as responses
         from marts.fct_csat_daily
         where survey_date between %(start)s and %(end)s {clause}
         group by 1 order by 1
         """,
-        {"start": start, "end": end, **extra},
+        params,
     )
 
 
 def backlog(start: date, end: date) -> pd.DataFrame:
     return query(
         """
-        select backlog_date, user_type, open_tickets
+        select backlog_date as day, user_type, open_tickets, aged_over_24h, aged_over_72h, closed
         from marts.fct_backlog_daily
         where backlog_date between %(start)s and %(end)s order by 1
         """,
@@ -211,35 +332,35 @@ def backlog(start: date, end: date) -> pd.DataFrame:
 
 
 def forecast(start: date, end: date, skills: list[str]) -> pd.DataFrame:
-    clause, extra = _skill_filter(skills)
+    clause, params = _params(start, end, skills)
     return query(
         f"""
-        select business_date,
+        select business_date as day,
                sum(forecast_traffic) as forecast,
-               sum(actual_traffic)   as actual
+               sum(actual_traffic)   as actual,
+               sum(forecast_fte)     as required_fte,
+               sum(scheduled_fte)    as scheduled_fte
         from marts.fct_forecast_vs_actual
         where business_date between %(start)s and %(end)s {clause}
         group by 1 order by 1
         """,
-        {"start": start, "end": end, **extra},
+        params,
     )
 
 
-def agent_scorecard(week_start: date, show_email: bool) -> pd.DataFrame:
-    who = "a.agent_email" if show_email else "left(a.agent_key, 8)"
+def forecast_by_group(start: date, end: date) -> pd.DataFrame:
     return query(
-        f"""
-        select {who} as agent, a.department, a.tier, a.tenure,
-               w.closed, round(w.cph::numeric, 2) as cph,
-               round(w.occupancy::numeric, 3) as occupancy,
-               round(w.on_time_rate::numeric, 3) as on_time_rate,
-               round(w.csat_pct::numeric, 3) as csat_pct
-        from marts.mart_agent_weekly w
-        join marts.dim_agent a using (agent_key)
-        where w.week_start = %(week)s
-        order by w.cph desc nulls last
+        """
+        select skill_group,
+               sum(forecast_traffic) as forecast,
+               sum(actual_traffic) as actual,
+               sum(abs(actual_traffic - forecast_traffic)) * 1.0 / nullif(sum(actual_traffic), 0) as wape,
+               avg(fte_gap) as avg_fte_gap
+        from marts.fct_forecast_vs_actual
+        where business_date between %(start)s and %(end)s
+        group by 1 order by 1
         """,
-        {"week": week_start},
+        {"start": start, "end": end},
     )
 
 
@@ -247,6 +368,35 @@ def weeks() -> list[date]:
     return query("select distinct week_start from marts.mart_agent_weekly order by 1 desc")[
         "week_start"
     ].tolist()
+
+
+def agent_scorecard(week_start: date, show_email: bool) -> pd.DataFrame:
+    who = "a.agent_email" if show_email else "left(a.agent_key, 8)"
+    return query(
+        f"""
+        select {who} as agent, a.department as team, a.tier, a.tenure,
+               w.closed, w.cph, w.occupancy, w.on_time_rate, w.csat_pct as csat
+        from marts.mart_agent_weekly w
+        join marts.dim_agent a using (agent_key)
+        where w.week_start = %(week)s
+        order by w.cph desc
+        """,
+        {"week": week_start},
+    )
+
+
+def freshness() -> pd.DataFrame:
+    """Newest date available in each fact, so readers can see how current the report is."""
+    return query(
+        """
+        select 'Productivity' as dataset, max(business_date) as latest from marts.fct_productivity_daily
+        union all select 'Tickets', max(create_date) from marts.fct_tickets_daily
+        union all select 'CSAT', max(survey_date) from marts.fct_csat_daily
+        union all select 'Attendance', max(schedule_date) from marts.fct_attendance_daily
+        union all select 'Backlog', max(backlog_date) from marts.fct_backlog_daily
+        union all select 'Forecast', max(business_date) from marts.fct_forecast_vs_actual
+        """
+    )
 
 
 def recent_runs(limit: int = 30) -> pd.DataFrame:

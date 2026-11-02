@@ -142,7 +142,7 @@ Each chunk is downloaded, loaded incrementally and archived as Parquet. A chunk 
 
 ## Dashboard
 
-A small Streamlit app on top of the marts: KPIs (tickets closed, CPH, occupancy, CSAT, FCR, on-time attendance), weekly CPH, tickets and CSAT trends, backlog, forecast vs actual, an agent scorecard and the recent pipeline runs. Agents are shown by hashed id unless `SHOW_AGENT_EMAIL=1`.
+A Streamlit report on top of the marts: KPI cards with change versus the previous period and adjustable targets, productivity by week, segment, tenure, tier and team, quality (CSAT, FCR, 24h resolution), backlog and ageing, forecast versus actual with staffing, an agent scorecard, and a data-freshness page. Agents are shown by hashed id unless `SHOW_AGENT_EMAIL=1`.
 
 ```bash
 pip install -r requirements-app.txt
@@ -150,7 +150,7 @@ streamlit run app/streamlit_app.py          # uses the DB_* variables
 # or: docker compose up app                 # http://localhost:8501
 ```
 
-Without `DB_HOST` the app starts in **demo mode** on bundled synthetic data, so it runs anywhere with no database and can be deployed to Streamlit Community Cloud. See [docs/demo.md](docs/demo.md).
+Without `DB_HOST` the app starts in **sample mode** on bundled synthetic data, so it runs anywhere with no database and can be deployed to Streamlit Community Cloud. See [docs/demo.md](docs/demo.md).
 
 ## Try it without real data
 

@@ -22,11 +22,13 @@ def test_demo_dashboard_renders_with_numbers():
     at = AppTest.from_file(str(APP), default_timeout=90).run()
 
     assert not at.exception, [e.value for e in at.exception]
-    assert len(at.metric) == 6
-    assert any("Demo mode" in i.value for i in at.info)
     values = {m.label: m.value for m in at.metric}
+    for label in ("Tickets created", "Tickets closed", "CPH", "Occupancy", "CSAT", "First-contact resolution",
+                  "Resolved within 24h", "First response (min)", "On-time attendance"):
+        assert values[label] != "-", label
     assert values["Tickets closed"] not in ("-", "0")
-    assert values["CPH"] != "-"
+    # the sample is labelled, quietly, in the footer
+    assert any("sample dataset" in c.value for c in at.caption)
 
 
 def test_skill_group_filter_changes_the_numbers():
@@ -52,3 +54,20 @@ def test_queries_match_the_csv_files():
     first, last = queries.date_bounds()
     totals = queries.kpis(first, last, [])
     assert totals["closed"] == pytest.approx(csv_total)
+
+
+def test_default_period_is_whole_weeks_and_weekly_charts_skip_partial_weeks():
+    from datetime import timedelta
+
+    from streamlit.testing.v1 import AppTest
+
+    at = AppTest.from_file(str(APP), default_timeout=90).run()
+    start, end = at.sidebar.date_input[0].value
+    assert start.weekday() == 6  # Sunday
+    assert end.weekday() == 5  # Saturday
+    assert (end - start) == timedelta(days=27)
+
+    from app import queries
+
+    weekly = queries.weekly_quality(start, end, [])
+    assert len(weekly) == 4

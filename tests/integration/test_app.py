@@ -32,5 +32,5 @@ def test_dashboard_renders_without_errors(marts_available):
 
     at = AppTest.from_file(str(APP), default_timeout=60).run()
     assert not at.exception, [e.value for e in at.exception]
-    assert len(at.metric) == 6
+    assert len(at.metric) >= 9
     assert at.tabs  # six tabs rendered

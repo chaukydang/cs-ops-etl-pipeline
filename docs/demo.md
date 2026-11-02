@@ -1,6 +1,8 @@
-# Demo dashboard
+# Sample dashboard (no database)
 
-The dashboard runs without a database in **demo mode**: it loads the CSV files in `app/sample_data/` (synthetic marts produced by `scripts/make_demo_data.py` + dbt) into an in-memory DuckDB and runs the same queries it runs against PostgreSQL. Demo mode is used automatically when `DB_HOST` is not set, or when `SAMPLE_DATA=1`.
+The dashboard is a multi-tab operations report: KPI cards with change versus the previous period and targets, productivity (CPH, occupancy, tenure, tier, team), quality (CSAT, FCR, 24h resolution, first response), backlog and ageing, forecast versus actual with staffing, an agent scorecard and a data-freshness page. Weekly charts only show complete Sunday-to-Saturday weeks.
+
+It runs without a database in **sample mode**: it loads the CSV files in `app/sample_data/` (synthetic marts produced by `scripts/make_demo_data.py` + dbt) into an in-memory DuckDB and runs the same queries it runs against PostgreSQL. Sample mode is used automatically when `DB_HOST` is not set, or when `SAMPLE_DATA=1`.
 
 ## Run it locally
 
@@ -33,15 +35,15 @@ This repository contains only the dashboard and synthetic data, so it can be pub
 ## Refreshing the sample data
 
 ```bash
-python scripts/make_demo_data.py --days 56 --agents 40
+python scripts/make_demo_data.py --days 84 --agents 45
 # load into a local PostgreSQL and run dbt build (README, "Try it without real data")
 python scripts/export_sample_data.py --i-know-this-is-demo-data
 ```
 
-The exporter refuses to run without that flag, because the sample is published with the repository and must never contain real data.
+The generator follows the patterns of a support operation (weekday volume, promotion spikes that build a backlog which then clears, slower new agents, a forecast that misses promotion days), so the report behaves like a real one. The exporter refuses to run without that flag, because the sample is published with the repository and must never contain real data.
 
 ## Notes
 
-- Every figure in demo mode is synthetic. The page says so at the top.
+- Every figure in sample mode is synthetic. The page footer says so (`Source: sample dataset (synthetic)`); keep that line, readers should know what they are looking at.
 - Agent ids in the sample are hashes of fake e-mails (`agentNNN@example.com`).
 - Streamlit Community Cloud puts apps to sleep after a period without visitors; the first visit afterwards takes a few seconds to wake it.
