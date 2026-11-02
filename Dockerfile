@@ -11,8 +11,8 @@ COPY requirements-dbt.txt requirements-spark.txt ./
 RUN python -m venv /opt/venvs/dbt   && /opt/venvs/dbt/bin/pip install --no-cache-dir -r requirements-dbt.txt \
     && python -m venv /opt/venvs/spark && /opt/venvs/spark/bin/pip install --no-cache-dir -r requirements-spark.txt
 
-COPY requirements.txt requirements-prefect.txt ./
-RUN pip install --no-cache-dir -r requirements.txt -r requirements-prefect.txt
+COPY requirements.txt requirements-prefect.txt requirements-bigquery.txt ./
+RUN pip install --no-cache-dir -r requirements.txt -r requirements-prefect.txt -r requirements-bigquery.txt
 
 COPY . .
 

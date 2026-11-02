@@ -14,7 +14,7 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -r requirements.txt -r requirements-dev.txt -r requirements-prefect.txt
+      - run: pip install -r requirements.txt -r requirements-dev.txt -r requirements-prefect.txt -r requirements-bigquery.txt
       - run: ruff check .
       - run: pytest -q
 
@@ -67,6 +67,7 @@ jobs:
             python main.py --module database --action load --source "$s"
           done
       - run: dbt build --project-dir dbt --profiles-dir dbt
+      - run: dbt source freshness --project-dir dbt --profiles-dir dbt
       - name: integration tests (incremental load, backfill, monitoring, dashboard)
         run: pytest -q tests/integration
 
@@ -84,3 +85,15 @@ jobs:
           java-version: "17"
       - run: pip install -r requirements-spark.txt pytest
       - run: pytest -q tests/test_spark_history.py
+
+  bigquery-sql:
+    # Renders the dbt project for BigQuery offline and checks the SQL. No credentials needed.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install dbt-bigquery sqlglot cryptography
+      - run: python scripts/check_bigquery_sql.py
