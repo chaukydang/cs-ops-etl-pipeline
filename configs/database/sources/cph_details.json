@@ -5,5 +5,8 @@
   "enabled": true,
   "recursive": true,
   "load_mode": "incremental",
-  "date_column": "business_date"
+  "date_column": "business_date",
+  "cluster_by": [
+    "agent_email"
+  ]
 }

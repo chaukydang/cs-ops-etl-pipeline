@@ -293,7 +293,12 @@ def run_database_module(
     source_name: str | None,
 ) -> bool:
     try:
+        import os
+
         from modules.database.runner import DatabaseRunner
+
+        if os.getenv("WAREHOUSE", "postgres").strip().lower() == "bigquery":
+            from modules.warehouse.runner import BigQueryRunner as DatabaseRunner
 
         print()
         print(

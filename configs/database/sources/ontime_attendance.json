@@ -5,5 +5,8 @@
   "enabled": true,
   "recursive": true,
   "load_mode": "incremental",
-  "date_column": "schedule_date_local_timezone"
+  "date_column": "schedule_date_local_timezone",
+  "cluster_by": [
+    "agent_email"
+  ]
 }

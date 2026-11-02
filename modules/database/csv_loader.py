@@ -27,6 +27,8 @@ class CsvDefinition:
     date_column: str | None = None
     # monitoring: newest date may be at most this many days old
     max_lag_days: int = 3
+    # BigQuery only: clustering columns (ignored by PostgreSQL)
+    cluster_by: tuple = ()
 
 
 @dataclass(frozen=True)

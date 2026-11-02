@@ -42,15 +42,45 @@ def latest_dates(connection, schema: str, sources) -> tuple[dict, list[str]]:
     return result, missing
 
 
+def latest_dates_bigquery(client, project: str, dataset: str, sources) -> tuple[dict, list[str]]:
+    """BigQuery version: tables are partitioned, so MAX(_partition_date) is cheap."""
+    from google.api_core.exceptions import NotFound
+
+    result, missing = {}, []
+    for source in sources:
+        try:
+            client.get_table(f"{project}.{dataset}.{source.table_name}")
+        except NotFound:
+            missing.append(source.name)
+            continue
+        if source.load_mode != "incremental":
+            continue
+        rows = list(
+            client.query(
+                f"SELECT MAX(`_partition_date`) AS latest FROM `{project}.{dataset}.{source.table_name}`"
+            ).result()
+        )
+        result[source.name] = rows[0]["latest"] if rows else None
+    return result, missing
+
+
 def run(base_dir: Path, notify: bool = True) -> list[Issue]:
     runner = DatabaseRunner(base_dir)
     sources = runner._load_sources()
-    schema = runner.settings.get("schema", os.getenv("DB_SCHEMA", "Service"))
     max_age = float(os.getenv("MONITOR_MAX_LOAD_AGE_HOURS", "36"))
 
-    log = RunLog(DatabaseConnectionFactory.connect, schema)
-    with DatabaseConnectionFactory.connect() as connection:
-        dates, missing = latest_dates(connection, schema, sources)
+    if os.getenv("WAREHOUSE", "postgres").strip().lower() == "bigquery":
+        from modules.monitoring.run_log import BigQueryRunLog
+        from modules.warehouse.runner import bq_dataset, make_loader
+
+        client, project, _ = make_loader(base_dir)
+        log = BigQueryRunLog(client, project, bq_dataset())
+        dates, missing = latest_dates_bigquery(client, project, bq_dataset(), sources)
+    else:
+        schema = runner.settings.get("schema", os.getenv("DB_SCHEMA", "Service"))
+        log = RunLog(DatabaseConnectionFactory.connect, schema)
+        with DatabaseConnectionFactory.connect() as connection:
+            dates, missing = latest_dates(connection, schema, sources)
     present = [s for s in sources if s.name not in missing]
     last = {s.name: log.last_success("database", s.name) for s in present}
 

@@ -73,9 +73,16 @@ def run(
         except AeolusRowLimitError as error:
             raise RowLimitError(str(error)) from error
 
-    connection = DatabaseConnectionFactory.connect()
-    schema = db_runner.settings.get("schema", get_optional_env("DB_SCHEMA", "Service"))
-    loader = CsvDatabaseLoader(connection, base_dir, schema)
+    if get_optional_env("WAREHOUSE", "postgres").lower() == "bigquery":
+        from modules.warehouse.runner import make_loader
+
+        _, _, loader = make_loader(base_dir)
+        close_warehouse = lambda: None  # noqa: E731 - the BigQuery client needs no cleanup
+    else:
+        connection = DatabaseConnectionFactory.connect()
+        schema = db_runner.settings.get("schema", get_optional_env("DB_SCHEMA", "Service"))
+        loader = CsvDatabaseLoader(connection, base_dir, schema)
+        close_warehouse = connection.close
 
     def load(metric: str, file_path: Path, start: date, end: date) -> dict:
         db_source = db_sources[metric]
@@ -102,5 +109,5 @@ def run(
             keep_files=keep_files,
         )
     finally:
-        connection.close()
+        close_warehouse()
         auth_manager.close()

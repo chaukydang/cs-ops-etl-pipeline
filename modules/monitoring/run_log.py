@@ -118,3 +118,78 @@ class RunLog:
         except Exception as problem:  # noqa: BLE001
             LOGGER.warning("Could not read run log: %s", problem)
             return None
+
+
+class BigQueryRunLog(RunLog):
+    """Same interface as RunLog, stored in `<dataset>.pipeline_runs` on BigQuery."""
+
+    def __init__(self, client, project: str, dataset: str, run_id: str | None = None):
+        super().__init__(None, dataset, run_id)
+        self.client = client
+        self.table = f"{project}.{dataset}.{TABLE}"
+
+    def _ensure(self) -> None:
+        if self._ready:
+            return
+        from google.cloud import bigquery
+
+        schema = [
+            bigquery.SchemaField("run_id", "STRING"),
+            bigquery.SchemaField("stage", "STRING"),
+            bigquery.SchemaField("source", "STRING"),
+            bigquery.SchemaField("status", "STRING"),
+            bigquery.SchemaField("rows", "INT64"),
+            bigquery.SchemaField("started_at", "TIMESTAMP"),
+            bigquery.SchemaField("finished_at", "TIMESTAMP"),
+            bigquery.SchemaField("duration_s", "FLOAT64"),
+            bigquery.SchemaField("error", "STRING"),
+            bigquery.SchemaField("details", "STRING"),
+        ]
+        self.client.create_table(bigquery.Table(self.table, schema=schema), exists_ok=True)
+        self._ready = True
+
+    def record(self, stage, source, status, started_at, rows=None, error=None, details=None) -> None:
+        finished = datetime.now(timezone.utc)
+        try:
+            self._ensure()
+            errors = self.client.insert_rows_json(
+                self.table,
+                [{
+                    "run_id": self.run_id,
+                    "stage": stage,
+                    "source": source,
+                    "status": status,
+                    "rows": rows,
+                    "started_at": started_at.isoformat(),
+                    "finished_at": finished.isoformat(),
+                    "duration_s": round((finished - started_at).total_seconds(), 2),
+                    "error": (error or None) and error[:2000],
+                    "details": json.dumps(details, default=str) if details else None,
+                }],
+            )
+            if errors:
+                LOGGER.warning("Could not write run log: %s", errors)
+        except Exception as problem:  # noqa: BLE001 - logging must not fail the run
+            LOGGER.warning("Could not write run log: %s", problem)
+
+    def last_success(self, stage: str, source: str):
+        from google.cloud import bigquery
+
+        try:
+            config = bigquery.QueryJobConfig(
+                query_parameters=[
+                    bigquery.ScalarQueryParameter("stage", "STRING", stage),
+                    bigquery.ScalarQueryParameter("source", "STRING", source),
+                ]
+            )
+            rows = list(
+                self.client.query(
+                    f"SELECT MAX(finished_at) AS last FROM `{self.table}` "
+                    "WHERE stage = @stage AND source = @source AND status = 'success'",
+                    job_config=config,
+                ).result()
+            )
+            return rows[0]["last"] if rows else None
+        except Exception as problem:  # noqa: BLE001
+            LOGGER.warning("Could not read run log: %s", problem)
+            return None

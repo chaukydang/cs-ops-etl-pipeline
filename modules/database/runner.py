@@ -146,6 +146,7 @@ class DatabaseRunner:
                 load_mode=str(data.get("load_mode", "replace")).strip().lower(),
                 date_column=(str(data["date_column"]).strip() if data.get("date_column") else None),
                 max_lag_days=int(data.get("max_lag_days", 3)),
+                cluster_by=tuple(data.get("cluster_by", ())),
             )
             if definition.enabled:
                 definitions.append(definition)

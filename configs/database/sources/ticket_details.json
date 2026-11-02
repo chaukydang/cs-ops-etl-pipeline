@@ -5,5 +5,8 @@
   "enabled": true,
   "recursive": true,
   "load_mode": "incremental",
-  "date_column": "create_date"
+  "date_column": "create_date",
+  "cluster_by": [
+    "ticket_skill_group_name"
+  ]
 }
